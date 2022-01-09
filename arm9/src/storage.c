@@ -321,6 +321,9 @@ bool deleteDir(char const* path)
 {
 	if (!path) return false;
 
+	if(strncmp(path, "nand:", 5) == 0)
+		nandWritten = true;
+
 	if (strcmp("/", path) == 0)
 	{
 		//oh fuck no
