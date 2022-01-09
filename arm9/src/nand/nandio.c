@@ -6,6 +6,7 @@
 #include "crypto.h"
 #include "sector0.h"
 #include "f_xy.h"
+#include "../message.h"
 #include "nandio.h"
 #include "u128_math.h"
 
@@ -33,6 +34,7 @@ const DISC_INTERFACE io_dsi_nand = {
 
 bool is3DS;
 
+static bool writingLocked = true;
 static bool nandWritten = false;
 
 extern bool nand_Startup();
@@ -169,6 +171,9 @@ bool nandio_read_sectors(sec_t offset, sec_t len, void *buffer)
 
 bool nandio_write_sectors(sec_t offset, sec_t len, const void *buffer) 
 {
+	if(writingLocked)
+		return false;
+
 	nandWritten = true;
 
 	while (len >= CRYPT_BUF_LEN) 
@@ -198,7 +203,6 @@ bool nandio_clear_status()
 bool nandio_shutdown() 
 {
 	if(nandWritten) {
-
 		// at cleanup we synchronize the FAT statgings
 		// A FatFS might have multiple copies of the FAT. 
 		// we will get them back synchonized as we just worked on the first copy
@@ -221,10 +225,12 @@ bool nandio_shutdown()
 				// read fat sector
 				nandio_read_sectors(fat_sig_fix_offset + reservedSectors + sector, 1, sector_buf) ;
 				// write to each copy, except the source copy
+				writingLocked = false;
 				for (int stage = 1;stage < stagingLevels;stage++)
 				{
 					nandio_write_sectors(fat_sig_fix_offset + reservedSectors + sector + (stage *sectorsPerFatCopy), 1, sector_buf) ;
 				}
+				writingLocked = true;
 			}
 		}
 		nandWritten = false;
@@ -234,9 +240,25 @@ bool nandio_shutdown()
 	return true;
 }
 
+bool nandio_lock_writing()
+{
+	writingLocked = true;
+
+	return writingLocked;
+}
+
+bool nandio_unlock_writing()
+{
+	if(writingLocked && randomConfirmBox("Writing to NAND is locked!\nIf you're sure you understand\nthe risk, input the sequence\nbelow."))
+		writingLocked = false;
+
+	return !writingLocked;
+}
+
 bool nandio_force_fat_fix()
 {
-	nandWritten = true;
+	if(!writingLocked)
+		nandWritten = true;
 
 	return true;
 }

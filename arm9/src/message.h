@@ -11,6 +11,7 @@ enum {
 void keyWait(u32 key);
 bool choiceBox(char* message);
 bool choicePrint(char* message);
+bool randomConfirmBox(char* message);
 void messageBox(char* message);
 void messagePrint(char* message);
 

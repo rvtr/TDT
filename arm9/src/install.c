@@ -3,6 +3,7 @@
 #include "main.h"
 #include "message.h"
 #include "maketmd.h"
+#include "nand/nandio.h"
 #include "rom.h"
 #include "storage.h"
 #include <errno.h>
@@ -297,6 +298,9 @@ bool install(char* fpath, bool systemTitle)
 			return false;
 	}
 
+	if(!nandio_unlock_writing())
+			return false;
+
 	//start installation
 	clearScreen(&bottomScreen);
 	iprintf("Installing %s\n\n", fpath); swiWaitForVBlank();
@@ -552,6 +556,8 @@ error:
 
 complete:
 	free(h);
+
+	nandio_lock_writing();
 
 	return result;
 }

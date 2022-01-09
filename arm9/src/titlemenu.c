@@ -2,6 +2,7 @@
 #include "rom.h"
 #include "menu.h"
 #include "message.h"
+#include "nand/nandio.h"
 #include "storage.h"
 #include <dirent.h>
 
@@ -355,6 +356,9 @@ static bool delete(Menu* m)
 			}
 			else
 			{
+				if(!nandio_unlock_writing())
+					return false;
+
 				clearScreen(&bottomScreen);
 
 				if (deleteDir(dirPath))
@@ -366,6 +370,8 @@ static bool delete(Menu* m)
 				{
 					messagePrint("\nTitle could not be deleted.\n");
 				}
+
+				nandio_lock_writing();
 			}
 		}
 	}

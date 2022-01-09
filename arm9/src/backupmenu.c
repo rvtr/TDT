@@ -2,6 +2,7 @@
 #include "menu.h"
 #include "storage.h"
 #include "message.h"
+#include "nand/nandio.h"
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -190,6 +191,9 @@ static void restore(Menu* m)
 		}
 		else
 		{
+			if(!nandio_unlock_writing())
+				return;
+
 			clearScreen(&bottomScreen);
 
 			if (!copyDir(fpath, "nand:/title"))
@@ -200,6 +204,8 @@ static void restore(Menu* m)
 			{
 				messagePrint("\x1B[42m\nBackup restored.\n\x1B[47m");
 			}
+
+			nandio_lock_writing();
 		}
 	}
 }

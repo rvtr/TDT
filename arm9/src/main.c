@@ -149,8 +149,11 @@ int main(int argc, char **argv)
 				break;
 
 			case MAIN_MENU_FIX:
-				nandio_force_fat_fix();
-				messageBox("Mismatch in FAT copies will be\nfixed on close.\n");
+				if(nandio_unlock_writing()) {
+					nandio_force_fat_fix();
+					nandio_lock_writing();
+					messageBox("Mismatch in FAT copies will be\nfixed on close.\n");
+				}
 				break;
 
 			case MAIN_MENU_EXIT:
