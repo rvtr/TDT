@@ -37,7 +37,7 @@ endif
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all: checkarm7 checkarm9 $(TARGET).nds
+all: checkarm7 checkarm9 $(TARGET).dsi
 
 #---------------------------------------------------------------------------------
 checkarm7:
@@ -48,8 +48,8 @@ checkarm9:
 	$(MAKE) -C arm9
 
 #---------------------------------------------------------------------------------
-$(TARGET).nds	: $(NITRO_FILES) arm7/$(TARGET).elf arm9/$(TARGET).elf
-	ndstool	-c $(TARGET).nds -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
+$(TARGET).dsi	: $(NITRO_FILES) arm7/$(TARGET).elf arm9/$(TARGET).elf
+	ndstool	-c $(TARGET).dsi -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
 			-u "00030004" \
 			-g "$(GAME_CODE)" "00" "$(GAME_LABEL)" \
 			-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" \
@@ -67,4 +67,4 @@ arm9/$(TARGET).elf:
 clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
-	rm -f $(TARGET).nds $(TARGET).arm7 $(TARGET).arm9
+	rm -f $(TARGET).dsi $(TARGET).arm7 $(TARGET).arm9

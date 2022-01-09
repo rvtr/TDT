@@ -1,6 +1,7 @@
 *.o
 *.d
 *.nds
+*.dsi
 *.elf
 *.map
 *build/
