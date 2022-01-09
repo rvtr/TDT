@@ -33,6 +33,8 @@ const DISC_INTERFACE io_dsi_nand = {
 
 bool is3DS;
 
+static bool nandWritten = false;
+
 extern bool nand_Startup();
 
 static u8* crypt_buf = 0;
@@ -167,6 +169,8 @@ bool nandio_read_sectors(sec_t offset, sec_t len, void *buffer)
 
 bool nandio_write_sectors(sec_t offset, sec_t len, const void *buffer) 
 {
+	nandWritten = true;
+
 	while (len >= CRYPT_BUF_LEN) 
   {
 		if (!write_sectors(offset, CRYPT_BUF_LEN, buffer)) 
@@ -193,33 +197,37 @@ bool nandio_clear_status()
 
 bool nandio_shutdown() 
 {
-	// at cleanup we synchronize the FAT statgings
-	// A FatFS might have multiple copies of the FAT. 
-	// we will get them back synchonized as we just worked on the first copy
-	// this allows us to revert changes in the FAT if we did not properly finish
-	// and did not push the changes to the other copies
-	// to do this we read the first partition sector
-	nandio_read_sectors(fat_sig_fix_offset, 1, sector_buf) ;
-	u8 stagingLevels = sector_buf[0x10] ;
-	u8 reservedSectors = sector_buf[0x0E] ;
-  u16 sectorsPerFatCopy = sector_buf[0x16] | ((u16)sector_buf[0x17] << 8) ;
-/*
-	iprintf("[i] Staging for %i FAT copies\n",stagingLevels);
-	iprintf("[i] Stages starting at %i\n",reservedSectors);
-	iprintf("[i] %i sectors per stage\n",sectorsPerFatCopy);
-*/
-	if (stagingLevels > 1)
-	{
-		for (u32 sector = 0;sector < sectorsPerFatCopy; sector++)
+	if(nandWritten) {
+
+		// at cleanup we synchronize the FAT statgings
+		// A FatFS might have multiple copies of the FAT. 
+		// we will get them back synchonized as we just worked on the first copy
+		// this allows us to revert changes in the FAT if we did not properly finish
+		// and did not push the changes to the other copies
+		// to do this we read the first partition sector
+		nandio_read_sectors(fat_sig_fix_offset, 1, sector_buf) ;
+		u8 stagingLevels = sector_buf[0x10] ;
+		u8 reservedSectors = sector_buf[0x0E] ;
+		u16 sectorsPerFatCopy = sector_buf[0x16] | ((u16)sector_buf[0x17] << 8) ;
+	/*
+		iprintf("[i] Staging for %i FAT copies\n",stagingLevels);
+		iprintf("[i] Stages starting at %i\n",reservedSectors);
+		iprintf("[i] %i sectors per stage\n",sectorsPerFatCopy);
+	*/
+		if (stagingLevels > 1)
 		{
-			// read fat sector
-			nandio_read_sectors(fat_sig_fix_offset + reservedSectors + sector, 1, sector_buf) ;
-			// write to each copy, except the source copy
-			for (int stage = 1;stage < stagingLevels;stage++)
+			for (u32 sector = 0;sector < sectorsPerFatCopy; sector++)
 			{
-				nandio_write_sectors(fat_sig_fix_offset + reservedSectors + sector + (stage *sectorsPerFatCopy), 1, sector_buf) ;
+				// read fat sector
+				nandio_read_sectors(fat_sig_fix_offset + reservedSectors + sector, 1, sector_buf) ;
+				// write to each copy, except the source copy
+				for (int stage = 1;stage < stagingLevels;stage++)
+				{
+					nandio_write_sectors(fat_sig_fix_offset + reservedSectors + sector + (stage *sectorsPerFatCopy), 1, sector_buf) ;
+				}
 			}
 		}
+		nandWritten = false;
 	}
 	free(crypt_buf);
 	crypt_buf = 0;

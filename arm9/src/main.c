@@ -7,7 +7,6 @@
 #define VERSION "0.7.1"
 
 bool programEnd = false;
-bool nandWritten = false;
 
 PrintConsole topScreen;
 PrintConsole bottomScreen;
@@ -156,10 +155,8 @@ int main(int argc, char **argv)
 	clearScreen(&bottomScreen);
 	printf("Unmounting NAND...\n");
 	fatUnmount("nand:");
-	if(nandWritten) {
-		printf("Merging stages...\n");
-		nandio_shutdown();
-	}
+	printf("Merging stages...\n");
+	nandio_shutdown();
 
 	fifoSendValue32(FIFO_USER_02, 0x54495845); // 'EXIT'
 

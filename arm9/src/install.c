@@ -391,8 +391,6 @@ bool install(char* fpath, bool systemTitle)
 
 		sprintf(dirPath, "nand:/title/%08x/%08x", (unsigned int)h->tid_high, (unsigned int)h->tid_low);	
 
-		nandWritten = true;
-
 		//check if title is free
 		if (_titleIsUsed(h))
 		{

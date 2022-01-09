@@ -306,7 +306,6 @@ static bool delete(Menu* m)
 		{
 			if (remove(fpath) == 0)
 			{
-				nandWritten = true;
 				result = true;
 				messageBox("\x1B[42mFile deleted.\x1B[47m");
 			}

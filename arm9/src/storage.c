@@ -83,9 +83,6 @@ int copyFile(char const* src, char const* dst)
 {
 	if (!src) return 1;
 
-	if(strncmp(dst, "nand:", 5) == 0)
-		nandWritten = true;
-
 	unsigned long long size = getFileSizePath(src);
 	return copyFilePart(src, 0, size, dst);
 }
@@ -94,9 +91,6 @@ int copyFilePart(char const* src, u32 offset, u32 size, char const* dst)
 {
 	if (!src) return 1;
 	if (!dst) return 2;
-
-	if(strncmp(dst, "nand:", 5) == 0)
-		nandWritten = true;
 
 	FILE* fin = fopen(src, "rb");
 
@@ -185,9 +179,6 @@ bool padFile(char const* path, int size)
 {
 	if (!path) return false;
 
-	if(strncmp(path, "nand:", 5) == 0)
-		nandWritten = true;
-
 	FILE* f = fopen(path, "ab");
 	if (!f)
 	{
@@ -220,9 +211,6 @@ bool dirExists(char const* path)
 bool copyDir(char const* src, char const* dst)
 {
 	if (!src || !dst) return false;
-
-	if(strncmp(dst, "nand:", 5) == 0)
-		nandWritten = true;
 
 //	iprintf("copyDir\n%s\n%s\n\n", src, dst);
 
@@ -320,9 +308,6 @@ bool copyDir(char const* src, char const* dst)
 bool deleteDir(char const* path)
 {
 	if (!path) return false;
-
-	if(strncmp(path, "nand:", 5) == 0)
-		nandWritten = true;
 
 	if (strcmp("/", path) == 0)
 	{
