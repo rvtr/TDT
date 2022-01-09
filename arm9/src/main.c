@@ -16,6 +16,7 @@ enum {
 	MAIN_MENU_TITLES,
 	MAIN_MENU_BACKUP,
 	MAIN_MENU_TEST,
+	MAIN_MENU_FIX,
 	MAIN_MENU_EXIT
 };
 
@@ -60,6 +61,7 @@ static int _mainMenu(int cursor)
 	addMenuItem(m, "Titles", NULL, 0);
 	addMenuItem(m, "Restore", NULL, 0);
 	addMenuItem(m, "Test", NULL, 0);
+	addMenuItem(m, "Fix FAT copy mismatch", NULL, 0);
 	addMenuItem(m, "Shut Down", NULL, 0);
 
 	m->cursor = cursor;
@@ -144,6 +146,11 @@ int main(int argc, char **argv)
 
 			case MAIN_MENU_TEST:
 				testMenu();
+				break;
+
+			case MAIN_MENU_FIX:
+				nandio_force_fat_fix();
+				messageBox("Mismatch in FAT copies will be\nfixed on close.\n");
 				break;
 
 			case MAIN_MENU_EXIT:

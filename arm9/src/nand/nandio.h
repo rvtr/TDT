@@ -22,6 +22,8 @@ void getConsoleID(uint8_t *consoleID) ;
 
 extern bool nandio_shutdown() ;
 
+extern bool nandio_force_fat_fix() ;
+
 #ifdef __cplusplus
 }
 #endif

@@ -233,3 +233,10 @@ bool nandio_shutdown()
 	crypt_buf = 0;
 	return true;
 }
+
+bool nandio_force_fat_fix()
+{
+	nandWritten = true;
+
+	return true;
+}
