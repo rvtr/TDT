@@ -13,7 +13,7 @@ static bool _titleIsUsed(tDSiHeader* h)
 	if (!h) return false;
 
 	char path[64];
-	sprintf(path, "/title/%08x/%08x/", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
+	sprintf(path, "nand:/title/%08x/%08x/", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
 
 	return dirExists(path);
 }
@@ -345,8 +345,8 @@ bool install(char* fpath, bool systemTitle)
 		printBytes(installSize);
 		iprintf("\n");
 
-		if (!_checkSdSpace(installSize))
-			goto error;		
+		// if (!_checkSdSpace(installSize))
+		// 	goto error;		
 
 		//system title patch
 		if (systemTitle)
@@ -382,14 +382,16 @@ bool install(char* fpath, bool systemTitle)
 		if (_iqueHack(h))
 			fixHeader = true;
 
-		//create title directory /title/XXXXXXXX/XXXXXXXX
+		//create title directory nand:/title/XXXXXXXX/XXXXXXXX
 		char dirPath[32];
-		mkdir("/title", 0777);
+		mkdir("nand:/title", 0777);
 		
-		sprintf(dirPath, "/title/%08x", (unsigned int)h->tid_high);
+		sprintf(dirPath, "nand:/title/%08x", (unsigned int)h->tid_high);
 		mkdir(dirPath, 0777);
 
-		sprintf(dirPath, "/title/%08x/%08x", (unsigned int)h->tid_high, (unsigned int)h->tid_low);	
+		sprintf(dirPath, "nand:/title/%08x/%08x", (unsigned int)h->tid_high, (unsigned int)h->tid_low);	
+
+		nandWritten = true;
 
 		//check if title is free
 		if (_titleIsUsed(h))
@@ -413,7 +415,7 @@ bool install(char* fpath, bool systemTitle)
 
 		mkdir(dirPath, 0777);
 
-		//content folder /title/XXXXXXXX/XXXXXXXXX/content
+		//content folder nand:/title/XXXXXXXX/XXXXXXXXX/content
 		{
 			char contentPath[64];
 			sprintf(contentPath, "%s/content", dirPath);

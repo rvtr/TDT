@@ -1,0 +1,9 @@
+*.o
+*.d
+*.nds
+*.elf
+*.map
+*build/
+*.vscode
+*.DS_Store
+*._*

@@ -31,7 +31,7 @@ void backupMenu()
 	}
 	else
 	{
-		while (1)
+		while (!programEnd)
 		{
 			swiWaitForVBlank();
 			scanKeys();
@@ -86,7 +86,7 @@ static int subMenu()
 
 	printMenu(m);
 
-	while (1)
+	while (!programEnd)
 	{
 		swiWaitForVBlank();
 		scanKeys();
@@ -192,7 +192,7 @@ static void restore(Menu* m)
 		{
 			clearScreen(&bottomScreen);
 
-			if (!copyDir(fpath, "/title"))
+			if (!copyDir(fpath, "nand:/title"))
 			{
 				messagePrint("\x1B[31m\nFailed to restore backup.\n\x1B[47m");
 			}

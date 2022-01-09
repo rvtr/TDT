@@ -24,7 +24,7 @@ static void _setHeader(Menu* m)
 {
 	if (!m) return;
 	if (currentDir[0] == '\0')
-		setMenuHeader(m, "/");
+		setMenuHeader(m, "sd:/");
 	else
 		setMenuHeader(m, currentDir);
 }
@@ -49,7 +49,7 @@ void installMenu()
 	}
 	else*/
 	{
-		while (1)
+		while (!programEnd)
 		{
 			swiWaitForVBlank();
 			scanKeys();
@@ -151,7 +151,7 @@ static void generateList(Menu* m)
 	DIR* dir = NULL;
 
 	if (currentDir[0] == '\0')
-		dir = opendir("/");
+		dir = opendir("sd:/");
 	else
 		dir = opendir(currentDir);	
 
@@ -253,7 +253,7 @@ static int subMenu()
 
 	printMenu(m);
 
-	while (1)
+	while (!programEnd)
 	{
 		swiWaitForVBlank();
 		scanKeys();

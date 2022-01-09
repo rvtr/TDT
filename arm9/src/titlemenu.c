@@ -30,7 +30,7 @@ void titleMenu()
 	}
 	else
 	{
-		while (1)
+		while (!programEnd)
 		{
 			swiWaitForVBlank();
 			scanKeys();
@@ -94,11 +94,11 @@ static void generateList(Menu* m)
 	bool done = false;
 	int count = 0;	//used to skip to the right page
 
-	//search each category directory /title/XXXXXXXX
+	//search each category directory nand:/title/XXXXXXXX
 	for (int i = 0; i < NUM_OF_DIRS && done == false; i++)
 	{
-		char* dirPath = (char*)malloc(strlen(dirs[i])+10);
-		sprintf(dirPath, "/title/%s", dirs[i]);
+		char* dirPath = (char*)malloc(strlen(dirs[i])+15);
+		sprintf(dirPath, "nand:/title/%s", dirs[i]);
 
 		struct dirent* ent;
 		DIR* dir = opendir(dirPath);
@@ -112,7 +112,7 @@ static void generateList(Menu* m)
 
 				if (ent->d_type == DT_DIR)
 				{
-					//scan content folder /title/XXXXXXXX/content
+					//scan content folder nand:/title/XXXXXXXX/content
 					char* contentPath = (char*)malloc(strlen(dirPath) + strlen(ent->d_name) + 20);
 					sprintf(contentPath, "%s/%s/content", dirPath, ent->d_name);
 
@@ -196,7 +196,7 @@ static int subMenu()
 
 	printMenu(m);
 
-	while (1)
+	while (!programEnd)
 	{
 		swiWaitForVBlank();
 		scanKeys();
@@ -268,12 +268,12 @@ static void backup(Menu* m)
 		u32 tid_high = 1;
 		getTitleId(h, &tid_low, &tid_high);
 
-		char* srcpath = (char*)malloc(strlen("/title/") + 32);
-		sprintf(srcpath, "/title/%08x/%08x", (unsigned int)tid_high, (unsigned int)tid_low);
+		char* srcpath = (char*)malloc(strlen("nand:/title/") + 32);
+		sprintf(srcpath, "nand:/title/%08x/%08x", (unsigned int)tid_high, (unsigned int)tid_low);
 
 		if (getSDCardFree() < getDirSize(srcpath))
 		{
-			messageBox("Not enough space on SD card.");
+			messageBox("Not enough space on NAND.");
 		}
 		else
 		{
@@ -281,20 +281,20 @@ static void backup(Menu* m)
 			sprintf(dstpath, "%s/%s", BACKUP_PATH, backname);
 
 			//create dirs
-			mkdir(BACKUP_PATH, 0777); 	// /titlebackup
-			mkdir(dstpath, 0777);		// /titlebackup/App Name - XXXX
+			mkdir(BACKUP_PATH, 0777); 	// sd:/titlebackup
+			mkdir(dstpath, 0777);		// sd:/titlebackup/App Name - XXXX
 			free(dstpath);
 
 			dstpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(backname) + 16);
 			sprintf(dstpath, "%s/%s/%08x", BACKUP_PATH, backname, (unsigned int)tid_high);
 
-			mkdir(dstpath, 0777);		// /titlebackup/App Name - XXXX/tid_high
+			mkdir(dstpath, 0777);		// sd:/titlebackup/App Name - XXXX/tid_high
 			free(dstpath);
 
 			dstpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(backname) + 32);
 			sprintf(dstpath, "%s/%s/%08x/%08x", BACKUP_PATH, backname, (unsigned int)tid_high, (unsigned int)tid_low);
 
-			mkdir(dstpath, 0777);		// /titlebackup/App Name - XXXX/tid_high/tid_low
+			mkdir(dstpath, 0777);		// sd:/titlebackup/App Name - XXXX/tid_high/tid_low
 
 //			iprintf("dst %s\nsrc %s", dstpath, srcpath);
 //			keyWait(KEY_A);
@@ -347,7 +347,7 @@ static bool delete(Menu* m)
 		else
 		{
 			char dirPath[64];
-			sprintf(dirPath, "%.24s", fpath);
+			sprintf(dirPath, "%.29s", fpath);
 
 			if (!dirExists(dirPath))
 			{

@@ -13,12 +13,12 @@ export TOPDIR	:=	$(CURDIR)
 NITRO_FILES	:=
 
 # These set the information text in the nds file
-GAME_TITLE		:=	TMFH
-GAME_SUBTITLE1	:=	Title Manager for HiyaCFW
-GAME_SUBTITLE2	:=	JeffRuLz
+GAME_TITLE		:=	TMFN
+GAME_SUBTITLE1	:=	Title Manager for NAND
+GAME_SUBTITLE2	:=	JeffRuLz, Pk11
 
-GAME_CODE		:= TMFH
-GAME_LABEL		:= TITLEMANFH
+GAME_CODE		:= TMFN
+GAME_LABEL		:= TITLEMANFN
 
 include $(DEVKITARM)/ds_rules
 

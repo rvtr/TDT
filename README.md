@@ -1,8 +1,13 @@
-# Title Manager for HiyaCFW
-A basic title manager for DSi emunand.
+# Title Manager for NAND
+A basic title manager for DSi NAND, modified from JeffRuLz's Title Manager for HiyaCFW.
+
+## WARNING
+This modifies your internal system NAND! There is *always* a risk of **bricking**, albeit small, when you modify NAND. Please proceed with caution.
+
+This has *barely* been tested and should be used with *extreme caution*. Please always use with Unlaunch installed, homebrew installed to the DSi Menu won't work without it and I'm not even sure if DSiWare installed by this will.
 
 ## Features
-- Install DSiWare and homebrew onto your emunand home menu.
+- Install DSiWare and homebrew onto your SysNAND home menu.
 
 - Delete system titles and others hidden from Data Management.
 
@@ -11,7 +16,7 @@ A basic title manager for DSi emunand.
 - View basic title header info.
 
 ## Notes
-- Backup your SD card! Nothing bad should happen, but this is an early release so who knows.
+- Backup your SD card and your NAND! Nothing bad should happen, but this is an early release so who knows.
 
 - This cannot be used to install cartridge games or older DS homebrew.
 
@@ -23,3 +28,7 @@ A basic title manager for DSi emunand.
 [MakeTMD by Tuxality](https://github.com/Tuxality/maketmd)
 
 [GBATEK](https://problemkaputt.de/gbatek.htm)
+
+[TMFH by JeffRuLz](https://github.com/JeffRuLz/TMFH)
+
+[DSi Language Patcher by DesperateProgrammer](https://github.com/DesperateProgrammer/DSiLanguagePacher)

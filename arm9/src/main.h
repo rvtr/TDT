@@ -5,6 +5,9 @@
 #include <fat.h>
 #include <stdio.h>
 
+extern bool programEnd;
+extern bool nandWritten;
+
 void installMenu();
 void titleMenu();
 void backupMenu();

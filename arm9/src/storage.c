@@ -83,6 +83,9 @@ int copyFile(char const* src, char const* dst)
 {
 	if (!src) return 1;
 
+	if(strncmp(dst, "nand:", 5) == 0)
+		nandWritten = true;
+
 	unsigned long long size = getFileSizePath(src);
 	return copyFilePart(src, 0, size, dst);
 }
@@ -91,6 +94,9 @@ int copyFilePart(char const* src, u32 offset, u32 size, char const* dst)
 {
 	if (!src) return 1;
 	if (!dst) return 2;
+
+	if(strncmp(dst, "nand:", 5) == 0)
+		nandWritten = true;
 
 	FILE* fin = fopen(src, "rb");
 
@@ -124,7 +130,7 @@ int copyFilePart(char const* src, u32 offset, u32 size, char const* dst)
 			#define BUFF_SIZE 128 //Arbitrary. A value too large freezes the ds.
 			char* buffer = (char*)malloc(BUFF_SIZE);
 
-			while (1)
+			while (!programEnd)
 			{
 				unsigned int toRead = BUFF_SIZE;
 				if (size - totalBytesRead < BUFF_SIZE)
@@ -179,6 +185,9 @@ bool padFile(char const* path, int size)
 {
 	if (!path) return false;
 
+	if(strncmp(path, "nand:", 5) == 0)
+		nandWritten = true;
+
 	FILE* f = fopen(path, "ab");
 	if (!f)
 	{
@@ -211,6 +220,9 @@ bool dirExists(char const* path)
 bool copyDir(char const* src, char const* dst)
 {
 	if (!src || !dst) return false;
+
+	if(strncmp(dst, "nand:", 5) == 0)
+		nandWritten = true;
 
 //	iprintf("copyDir\n%s\n%s\n\n", src, dst);
 
@@ -447,7 +459,7 @@ int getMenuSlotsFree()
 	for (int i = 0; i < NUM_OF_DIRS; i++)
 	{
 		char path[256];
-		sprintf(path, "/title/%s", dirs[i]);
+		sprintf(path, "nand:/title/%s", dirs[i]);
 		
 		dir = opendir(path);
 		
@@ -481,7 +493,7 @@ unsigned long long getSDCardSize()
 	if (sdIsInserted())
 	{
 		struct statvfs st;
-		if (statvfs("/", &st) == 0)
+		if (statvfs("sd:/", &st) == 0)
 			return st.f_bsize * st.f_blocks;
 	}
 
@@ -503,30 +515,18 @@ unsigned long long getSDCardFree()
 //internal storage
 unsigned long long getDsiSize()
 {
-	//The DSi has 256MB of internal storage. Some is unavailable and used by other things.
-	//An empty DSi reads 1024 open blocks
-	return 1024 * BYTES_PER_BLOCK;
+	struct statvfs st;
+	if (statvfs("nand:/", &st) == 0)
+		return st.f_bsize * st.f_blocks;
+
+	return 0;
 }
 
 unsigned long long getDsiFree()
 {
-	//Get free space by subtracting file sizes in emulated nand folders
-	unsigned long long size = getDsiSize();
-	unsigned long long appSize = getDirSize("/title/00030004");
+	struct statvfs st;
+	if (statvfs("nand:/", &st) == 0)
+		return st.f_bsize * st.f_bavail;
 
-	//round up to a full block
-	if (appSize % BYTES_PER_BLOCK != 0)
-		appSize = ((int)(appSize / BYTES_PER_BLOCK) * BYTES_PER_BLOCK) + BYTES_PER_BLOCK;
-
-	//subtract, but don't go under 0
-	if (appSize > size)
-	{
-		size = 0;
-	}
-	else
-	{
-		size -= appSize;
-	}
-
-	return size;
+	return 0;
 }
