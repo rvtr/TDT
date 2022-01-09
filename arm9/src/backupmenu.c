@@ -191,12 +191,12 @@ static void restore(Menu* m)
 		}
 		else
 		{
-			if(!nandio_unlock_writing())
+			if(!sdnandMode && !nandio_unlock_writing())
 				return;
 
 			clearScreen(&bottomScreen);
 
-			if (!copyDir(fpath, "nand:/title"))
+			if (!copyDir(fpath, sdnandMode ? "sd:/title" : "nand:/title"))
 			{
 				messagePrint("\x1B[31m\nFailed to restore backup.\n\x1B[47m");
 			}
@@ -205,7 +205,8 @@ static void restore(Menu* m)
 				messagePrint("\x1B[42m\nBackup restored.\n\x1B[47m");
 			}
 
-			nandio_lock_writing();
+			if(!sdnandMode)
+				nandio_lock_writing();
 		}
 	}
 }

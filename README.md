@@ -1,13 +1,13 @@
-# Title Manager for NAND
-A basic title manager for DSi NAND, modified from JeffRuLz's Title Manager for HiyaCFW.
+# Universal Title Manager
+A basic title manager for DSi supporting both hiyaCFW and SysNAND, modified from JeffRuLz's Title Manager for HiyaCFW.
 
 ## WARNING
-This modifies your internal system NAND! There is *always* a risk of **bricking**, albeit small, when you modify NAND. Please proceed with caution.
+This can modify your internal system NAND! There is *always* a risk of **bricking**, albeit small, when you modify NAND. Please proceed with caution.
 
 This has *barely* been tested and should be used with *extreme caution*. Please always use with Unlaunch installed, homebrew installed to the DSi Menu won't work without it and I'm not even sure if DSiWare installed by this will.
 
 ## Features
-- Install DSiWare and homebrew onto your SysNAND home menu.
+- Install DSiWare and homebrew onto your hiyaCFW SDNAND and SysNAND DSi Menus.
 
 - Delete system titles and others hidden from Data Management.
 

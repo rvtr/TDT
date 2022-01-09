@@ -447,7 +447,7 @@ int getMenuSlotsFree()
 	for (int i = 0; i < NUM_OF_DIRS; i++)
 	{
 		char path[256];
-		sprintf(path, "nand:/title/%s", dirs[i]);
+		sprintf(path, "%s:/title/%s", sdnandMode ? "sd" : "nand", dirs[i]);
 		
 		dir = opendir(path);
 		

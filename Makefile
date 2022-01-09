@@ -13,12 +13,11 @@ export TOPDIR	:=	$(CURDIR)
 NITRO_FILES	:=
 
 # These set the information text in the nds file
-GAME_TITLE		:=	TMFN
-GAME_SUBTITLE1	:=	Title Manager for NAND
-GAME_SUBTITLE2	:=	JeffRuLz, Pk11
+GAME_TITLE		:=	Universal Title Manager
+GAME_SUBTITLE1	:=	JeffRuLz, Pk11
 
-GAME_CODE		:= TMFN
-GAME_LABEL		:= TITLEMANFN
+GAME_CODE		:= HTMA
+GAME_LABEL		:= TITLEMAN
 
 include $(DEVKITARM)/ds_rules
 
@@ -52,7 +51,7 @@ $(TARGET).dsi	: $(NITRO_FILES) arm7/$(TARGET).elf arm9/$(TARGET).elf
 	ndstool	-c $(TARGET).dsi -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
 			-u "00030004" \
 			-g "$(GAME_CODE)" "00" "$(GAME_LABEL)" \
-			-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1);$(GAME_SUBTITLE2)" \
+			-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1)" \
 			$(_ADDFILES)
 
 #---------------------------------------------------------------------------------

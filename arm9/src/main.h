@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 extern bool programEnd;
+extern bool sdnandMode;
 
 void installMenu();
 void titleMenu();

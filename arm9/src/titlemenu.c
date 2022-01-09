@@ -95,11 +95,11 @@ static void generateList(Menu* m)
 	bool done = false;
 	int count = 0;	//used to skip to the right page
 
-	//search each category directory nand:/title/XXXXXXXX
+	//search each category directory /title/XXXXXXXX
 	for (int i = 0; i < NUM_OF_DIRS && done == false; i++)
 	{
 		char* dirPath = (char*)malloc(strlen(dirs[i])+15);
-		sprintf(dirPath, "nand:/title/%s", dirs[i]);
+		sprintf(dirPath, "%s:/title/%s", sdnandMode ? "sd" : "nand", dirs[i]);
 
 		struct dirent* ent;
 		DIR* dir = opendir(dirPath);
@@ -113,7 +113,7 @@ static void generateList(Menu* m)
 
 				if (ent->d_type == DT_DIR)
 				{
-					//scan content folder nand:/title/XXXXXXXX/content
+					//scan content folder /title/XXXXXXXX/content
 					char* contentPath = (char*)malloc(strlen(dirPath) + strlen(ent->d_name) + 20);
 					sprintf(contentPath, "%s/%s/content", dirPath, ent->d_name);
 
@@ -270,7 +270,7 @@ static void backup(Menu* m)
 		getTitleId(h, &tid_low, &tid_high);
 
 		char* srcpath = (char*)malloc(strlen("nand:/title/") + 32);
-		sprintf(srcpath, "nand:/title/%08x/%08x", (unsigned int)tid_high, (unsigned int)tid_low);
+		sprintf(srcpath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)tid_high, (unsigned int)tid_low);
 
 		if (getSDCardFree() < getDirSize(srcpath))
 		{
@@ -348,7 +348,8 @@ static bool delete(Menu* m)
 		else
 		{
 			char dirPath[64];
-			sprintf(dirPath, "%.29s", fpath);
+			sprintf(dirPath, "%.*s", sdnandMode ? 27 : 29, fpath);
+			nocashMessage(dirPath);
 
 			if (!dirExists(dirPath))
 			{
@@ -356,7 +357,7 @@ static bool delete(Menu* m)
 			}
 			else
 			{
-				if(!nandio_unlock_writing())
+				if(!sdnandMode && !nandio_unlock_writing())
 					return false;
 
 				clearScreen(&bottomScreen);
@@ -371,7 +372,8 @@ static bool delete(Menu* m)
 					messagePrint("\nTitle could not be deleted.\n");
 				}
 
-				nandio_lock_writing();
+				if(!sdnandMode)
+					nandio_lock_writing();
 			}
 		}
 	}

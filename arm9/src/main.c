@@ -2,16 +2,17 @@
 #include "menu.h"
 #include "message.h"
 #include "nand/nandio.h"
+#include "version.h"
 #include <time.h>
 
-#define VERSION "0.7.1"
-
 bool programEnd = false;
+bool sdnandMode = true;
 
 PrintConsole topScreen;
 PrintConsole bottomScreen;
 
 enum {
+	MAIN_MENU_MODE,
 	MAIN_MENU_INSTALL,
 	MAIN_MENU_TITLES,
 	MAIN_MENU_BACKUP,
@@ -44,11 +45,11 @@ static int _mainMenu(int cursor)
 	//top screen
 	clearScreen(&topScreen);
 
-	iprintf("\t  Title Manager for NAND\n");
+	iprintf("\t Universal Title Manager\n");
 	iprintf("\t\t\tmodified from\n");
 	iprintf("\tTitle Manager for HiyaCFW\n");
 	iprintf("\nversion %s\n", VERSION);
-	iprintf("\n\n\x1B[41mWARNING:\x1B[47m This tool writes to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n");
+	iprintf("\n\n\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n");
 	iprintf("\nDo not exit by holding POWER,\ntap it or choose \"Shut Down\".\n");
 	iprintf("\x1b[22;0HJeff - 2018-2019");
 	iprintf("\x1b[23;0HPk11 - 2022");
@@ -57,6 +58,9 @@ static int _mainMenu(int cursor)
 	Menu* m = newMenu();
 	setMenuHeader(m, "MAIN MENU");
 
+	char modeStr[32];
+	sprintf(modeStr, "Mode: %s", sdnandMode ? "SDNAND" : "\x1B[41mSysNAND\x1B[47m");
+	addMenuItem(m, modeStr, NULL, 0);
 	addMenuItem(m, "Install", NULL, 0);
 	addMenuItem(m, "Titles", NULL, 0);
 	addMenuItem(m, "Restore", NULL, 0);
@@ -118,8 +122,8 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	messageBox("\x1B[41mWARNING:\x1B[47m This tool writes to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n");
-	messageBox("Do not exit by holding POWER,\ntap it or choose \"Shut Down\".\n");
+	messageBox("\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!");
+	messageBox("Do not exit by holding POWER,\ntap it or choose \"Shut Down\".");
 
 	//main menu
 	int cursor = 0;
@@ -132,6 +136,10 @@ int main(int argc, char **argv)
 
 		switch (cursor)
 		{
+			case MAIN_MENU_MODE:
+				sdnandMode = !sdnandMode;
+				break;
+
 			case MAIN_MENU_INSTALL:
 				installMenu();
 				break;
