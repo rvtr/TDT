@@ -1,4 +1,4 @@
-# Universal Title Manager
+# NAND Title Manager
 A basic title manager for DSi supporting both hiyaCFW and SysNAND, modified from JeffRuLz's Title Manager for HiyaCFW.
 
 ## WARNING

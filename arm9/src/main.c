@@ -45,7 +45,7 @@ static int _mainMenu(int cursor)
 	//top screen
 	clearScreen(&topScreen);
 
-	iprintf("\t Universal Title Manager\n");
+	iprintf("\t\tNAND Title Manager\n");
 	iprintf("\t\t\tmodified from\n");
 	iprintf("\tTitle Manager for HiyaCFW\n");
 	iprintf("\nversion %s\n", VERSION);

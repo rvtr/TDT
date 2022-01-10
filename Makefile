@@ -13,7 +13,7 @@ export TOPDIR	:=	$(CURDIR)
 NITRO_FILES	:=
 
 # These set the information text in the nds file
-GAME_TITLE		:=	Universal Title Manager
+GAME_TITLE		:=	NAND Title Manager
 GAME_SUBTITLE1	:=	JeffRuLz, Pk11
 
 GAME_CODE		:= HTMA
