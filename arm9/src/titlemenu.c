@@ -174,6 +174,8 @@ static void generateList(Menu* m)
 		free(dirPath);
 	}
 
+	sortMenuItems(m);
+
 	m->nextPage = done;
 
 	if (m->cursor >= m->itemCount)

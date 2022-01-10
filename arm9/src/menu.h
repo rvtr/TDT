@@ -25,6 +25,7 @@ Menu* newMenu();
 void freeMenu(Menu* m);
 
 void addMenuItem(Menu* m, char const* label, char const* value, bool directory);
+void sortMenuItems(Menu* m);
 void setMenuHeader(Menu* m, char* str);
 
 void resetMenu(Menu* m);

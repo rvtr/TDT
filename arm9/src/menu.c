@@ -56,6 +56,24 @@ void addMenuItem(Menu* m, char const* label, char const* value, bool directory)
 	m->itemCount += 1;
 }
 
+static int alphabeticalCompare(const void* a, const void* b)
+{
+	const Item* itemA = (const Item*)a;
+	const Item* itemB = (const Item*)b;
+
+	if (itemA->directory && !itemB->directory)
+		return -1;
+	else if (!itemA->directory && itemB->directory)
+		return 1;
+	else
+		return strcasecmp(itemA->label, itemB->label);
+}
+
+void sortMenuItems(Menu* m)
+{
+	qsort(m->items, m->itemCount, sizeof(Item), alphabeticalCompare);
+}
+
 void setMenuHeader(Menu* m, char* str)
 {
 	if (!m) return;
