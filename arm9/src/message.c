@@ -93,7 +93,8 @@ bool randomConfirmBox(char* message)
 	int sequencePosition = 0;
 
 	u8 sequence[8];
-	for(int i = 0; i < sizeof(sequence); i++) {
+	for (int i = 0; i < sizeof(sequence); i++)
+	{
 		sequence[i] = rand() % (sizeof(keys) / sizeof(keys[0]));
 	}
 
@@ -111,19 +112,22 @@ bool randomConfirmBox(char* message)
 
 		//Print sequence
 		iprintf("\x1b[%d;0H", choiceRow);
-		for(int i = 0; i < sizeof(sequence); i++) {
+		for (int i = 0; i < sizeof(sequence); i++)
+		{
 			iprintf("\x1B[%0om", i < sequencePosition ? 032 : 047);
 			iprintf("%s ", keysLabels[sequence[i]]);
 		}
 
-		if (keysDown() & (KEY_UP | KEY_DOWN | KEY_RIGHT | KEY_LEFT | KEY_A | KEY_B | KEY_X | KEY_Y)) {
-			if(keysDown() & keys[sequence[sequencePosition]])
+		if (keysDown() & (KEY_UP | KEY_DOWN | KEY_RIGHT | KEY_LEFT | KEY_A | KEY_B | KEY_X | KEY_Y))
+		{
+			if (keysDown() & keys[sequence[sequencePosition]])
 				sequencePosition++;
 			else
 				sequencePosition = 0;
 		}
 
-		if (keysDown() & KEY_START) {
+		if (keysDown() & KEY_START)
+		{
 			sequencePosition = 0;
 			break;
 		}

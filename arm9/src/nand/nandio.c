@@ -171,7 +171,7 @@ bool nandio_read_sectors(sec_t offset, sec_t len, void *buffer)
 
 bool nandio_write_sectors(sec_t offset, sec_t len, const void *buffer) 
 {
-	if(writingLocked)
+	if (writingLocked)
 		return false;
 
 	nandWritten = true;
@@ -202,7 +202,8 @@ bool nandio_clear_status()
 
 bool nandio_shutdown() 
 {
-	if(nandWritten) {
+	if (nandWritten)
+	{
 		// at cleanup we synchronize the FAT statgings
 		// A FatFS might have multiple copies of the FAT. 
 		// we will get them back synchonized as we just worked on the first copy
@@ -249,7 +250,7 @@ bool nandio_lock_writing()
 
 bool nandio_unlock_writing()
 {
-	if(writingLocked && randomConfirmBox("Writing to NAND is locked!\nIf you're sure you understand\nthe risk, input the sequence\nbelow."))
+	if (writingLocked && randomConfirmBox("Writing to NAND is locked!\nIf you're sure you understand\nthe risk, input the sequence\nbelow."))
 		writingLocked = false;
 
 	return !writingLocked;
@@ -257,7 +258,7 @@ bool nandio_unlock_writing()
 
 bool nandio_force_fat_fix()
 {
-	if(!writingLocked)
+	if (!writingLocked)
 		nandWritten = true;
 
 	return true;

@@ -91,8 +91,9 @@ static int _mainMenu(int cursor)
 	return result;
 }
 
-void fifoHandler(u32 value32, void* userdata) {
-	if(value32 == 0x54495845) // 'EXIT'
+void fifoHandler(u32 value32, void* userdata)
+{
+	if (value32 == 0x54495845) // 'EXIT'
 		programEnd = true;
 }
 
@@ -157,7 +158,8 @@ int main(int argc, char **argv)
 				break;
 
 			case MAIN_MENU_FIX:
-				if(nandio_unlock_writing()) {
+				if (nandio_unlock_writing())
+				{
 					nandio_force_fat_fix();
 					nandio_lock_writing();
 					messageBox("Mismatch in FAT copies will be\nfixed on close.\n");

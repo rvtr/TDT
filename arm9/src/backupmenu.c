@@ -191,7 +191,7 @@ static void restore(Menu* m)
 		}
 		else
 		{
-			if(!sdnandMode && !nandio_unlock_writing())
+			if (!sdnandMode && !nandio_unlock_writing())
 				return;
 
 			clearScreen(&bottomScreen);
@@ -205,7 +205,7 @@ static void restore(Menu* m)
 				messagePrint("\x1B[42m\nBackup restored.\n\x1B[47m");
 			}
 
-			if(!sdnandMode)
+			if (!sdnandMode)
 				nandio_lock_writing();
 		}
 	}

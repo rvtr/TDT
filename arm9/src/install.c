@@ -347,8 +347,8 @@ bool install(char* fpath, bool systemTitle)
 			goto error;
 		}
 
-		if(!sdnandMode && !nandio_unlock_writing())
-		return false;
+		if (!sdnandMode && !nandio_unlock_writing())
+			return false;
 
 		clearScreen(&bottomScreen);
 		iprintf("Installing %s\n\n", fpath); swiWaitForVBlank();
@@ -491,10 +491,10 @@ bool install(char* fpath, bool systemTitle)
 			mkdir(contentPath, 0777);
 
 			u8 appVersion = 0;
-			if(tmdFound)
+			if (tmdFound)
 			{
 				FILE *file = fopen(tmdPath, "rb");
-				if(file)
+				if (file)
 				{
 					fseek(file, 0x1E7, SEEK_SET);
 					fread(&appVersion, sizeof(appVersion), 1, file);
@@ -669,7 +669,7 @@ error:
 complete:
 	free(h);
 
-	if(!sdnandMode)
+	if (!sdnandMode)
 		nandio_lock_writing();
 
 	return result;

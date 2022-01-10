@@ -361,7 +361,7 @@ static bool delete(Menu* m)
 			}
 			else
 			{
-				if(!sdnandMode && !nandio_unlock_writing())
+				if (!sdnandMode && !nandio_unlock_writing())
 					return false;
 
 				clearScreen(&bottomScreen);
@@ -376,7 +376,7 @@ static bool delete(Menu* m)
 					messagePrint("\nTitle could not be deleted.\n");
 				}
 
-				if(!sdnandMode)
+				if (!sdnandMode)
 					nandio_lock_writing();
 			}
 		}

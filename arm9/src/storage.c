@@ -258,7 +258,7 @@ bool copyDir(char const* src, char const* dst)
 
 				int ret = copyFile(fsrc, fdst);
 				
-				if(ret != 0)
+				if (ret != 0)
 				{
 					iprintf("\x1B[31m");	//red
 					iprintf("Fail\n");
@@ -396,7 +396,7 @@ unsigned long long getDirSize(const char* path)
 	{
 		while ((ent = readdir(dir)))
 		{
-			if(strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
+			if (strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
 				continue;
 
 			if (ent->d_type == DT_DIR)
@@ -455,7 +455,7 @@ int getMenuSlotsFree()
 		{
 			while ( (ent = readdir(dir)) != NULL )
 			{
-				if(strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
+				if (strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
 					continue;
 				
 				if (ent->d_type == DT_DIR)
