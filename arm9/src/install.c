@@ -6,6 +6,7 @@
 #include "nand/nandio.h"
 #include "rom.h"
 #include "storage.h"
+#include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>
 
@@ -382,9 +383,61 @@ bool install(char* fpath, bool systemTitle)
 				}
 			}
 		}
-		
+
+		//check for saves or legit tmd
+		int extensionPos = strrchr(fpath, '.') - fpath;
+
+		char pubPath[PATH_MAX];
+		strcpy(pubPath, fpath);
+		strcpy(pubPath + extensionPos, ".pub");
+		bool pubFound = getFileSizePath(pubPath) == h->public_sav_size;
+		if (access(pubPath, F_OK) == 0 && !pubFound)
+		{
+			if (choicePrint("Incorrect public save.\nInstall anyway?") == YES)
+				pubFound = false;
+			else
+				goto error;
+		}
+
+		char prvPath[PATH_MAX];
+		strcpy(prvPath, fpath);
+		strcpy(prvPath + extensionPos, ".prv");
+		bool prvFound = getFileSizePath(prvPath) == h->private_sav_size;
+		if (access(prvPath, F_OK) == 0 && !prvFound)
+		{
+			if (choicePrint("Incorrect private save.\nInstall anyway?") == YES)
+				prvFound = false;
+			else
+				goto error;
+		}
+
+		char bnrPath[PATH_MAX];
+		strcpy(bnrPath, fpath);
+		strcpy(bnrPath + extensionPos, ".bnr");
+		bool bnrFound = getFileSizePath(bnrPath) == 0x4000;
+		if (access(bnrPath, F_OK) == 0 && !bnrFound)
+		{
+			if (choicePrint("Incorrect banner save.\nInstall anyway?") == YES)
+				bnrFound = false;
+			else
+				goto error;
+		}
+
+		char tmdPath[PATH_MAX];
+		strcpy(tmdPath, fpath);
+		strcpy(tmdPath + extensionPos, ".tmd");
+		bool tmdFound = getFileSizePath(tmdPath) == 520;
+
 		if (_iqueHack(h))
 			fixHeader = true;
+
+		if (fixHeader && tmdFound)
+		{
+			if (choicePrint("Legit TMD cannot be used.\nInstall anyway?") == YES)
+				tmdFound = false;
+			else
+				goto error;
+		}
 
 		//create title directory /title/XXXXXXXX/XXXXXXXX
 		char dirPath[32];
@@ -424,13 +477,25 @@ bool install(char* fpath, bool systemTitle)
 
 			mkdir(contentPath, 0777);
 
-			//create 00000000.app
+			u8 appVersion = 0;
+			if(tmdFound)
 			{
-				iprintf("Creating 00000000.app...");
+				FILE *file = fopen(tmdPath, "rb");
+				if(file)
+				{
+					fseek(file, 0x1E7, SEEK_SET);
+					fread(&appVersion, sizeof(appVersion), 1, file);
+					fclose(file);
+				}
+			}
+
+			//create 000000##.app
+			{
+				iprintf("Creating 000000%02x.app...", appVersion);
 				swiWaitForVBlank();
 
 				char appPath[80];
-				sprintf(appPath, "%s/00000000.app", contentPath);
+				sprintf(appPath, "%s/000000%02x.app", contentPath, appVersion);
 
 				//copy nds file to app
 				{
@@ -517,12 +582,17 @@ bool install(char* fpath, bool systemTitle)
 					}
 				}
 
-				//make TMD
+				//make/copy TMD
+				char newTmdPath[80];
+				sprintf(newTmdPath, "%s/title.tmd", contentPath);
+				if (tmdFound)
 				{
-					char tmdPath[80];
-					sprintf(tmdPath, "%s/title.tmd", contentPath);
-
-					if (maketmd(appPath, tmdPath) != 0)				
+					if (copyFile(tmdPath, newTmdPath) != 0)
+						goto error;
+				}
+				else
+				{
+					if (maketmd(appPath, newTmdPath) != 0)
 						goto error;
 				}
 			}
@@ -535,10 +605,39 @@ bool install(char* fpath, bool systemTitle)
 
 			mkdir(dataPath, 0777);
 
-			_createPublicSav(h, dataPath);
-			_createPrivateSav(h, dataPath);		
-			_createBannerSav(h, dataPath);
-		}		
+			if (pubFound)
+			{
+				char newPubPath[80];
+				sprintf(newPubPath, "%s/public.sav", dataPath);
+				copyFile(pubPath, newPubPath);
+			}
+			else
+			{
+				_createPublicSav(h, dataPath);
+			}
+
+			if (prvFound)
+			{
+				char newPrvPath[80];
+				sprintf(newPrvPath, "%s/private.sav", dataPath);
+				copyFile(prvPath, newPrvPath);
+			}
+			else
+			{
+				_createPrivateSav(h, dataPath);
+			}
+
+			if (bnrFound)
+			{
+				char newBnrPath[80];
+				sprintf(newBnrPath, "%s/banner.sav", dataPath);
+				copyFile(bnrPath, newBnrPath);
+			}
+			else
+			{
+				_createBannerSav(h, dataPath);
+			}
+		}
 
 		//end
 		result = true;
