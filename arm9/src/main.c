@@ -8,6 +8,7 @@
 
 bool programEnd = false;
 bool sdnandMode = true;
+bool arm7Exiting = false;
 
 PrintConsole topScreen;
 PrintConsole bottomScreen;
@@ -51,7 +52,6 @@ static int _mainMenu(int cursor)
 	iprintf("\tTitle Manager for HiyaCFW\n");
 	iprintf("\nversion %s\n", VERSION);
 	iprintf("\n\n\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n");
-	iprintf("\nDo not exit by holding POWER,\ntap it or choose \"Shut Down\".\n");
 	iprintf("\x1b[22;0HJeff - 2018-2019");
 	iprintf("\x1b[23;0HPk11 - 2022");
 
@@ -95,7 +95,10 @@ static int _mainMenu(int cursor)
 void fifoHandler(u32 value32, void* userdata)
 {
 	if (value32 == 0x54495845) // 'EXIT'
+	{
 		programEnd = true;
+		arm7Exiting = true;
+	}
 }
 
 int main(int argc, char **argv)
@@ -138,7 +141,6 @@ int main(int argc, char **argv)
 	}
 
 	messageBox("\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!");
-	messageBox("Do not exit by holding POWER,\ntap it or choose \"Shut Down\".");
 
 	//main menu
 	int cursor = 0;
@@ -193,6 +195,9 @@ int main(int argc, char **argv)
 	nandio_shutdown();
 
 	fifoSendValue32(FIFO_USER_02, 0x54495845); // 'EXIT'
+
+	while (arm7Exiting)
+		swiWaitForVBlank();
 
 	return 0;
 }

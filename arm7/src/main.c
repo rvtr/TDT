@@ -27,11 +27,12 @@
 		distribution.
 
 ---------------------------------------------------------------------------------*/
-#include <nds.h>
+#include "my_sdmmc.h"
+
 //#include <dswifi7.h>
 //#include <maxmod7.h>
-#include "string.h"
-#include "my_sdmmc.h"
+#include <nds.h>
+#include <string.h>
 
 //---------------------------------------------------------------------------------
 void VblankHandler(void) {
@@ -47,11 +48,24 @@ void VcountHandler() {
 }
 
 volatile bool exitflag = false;
+volatile bool reboot = false;
 
+// https://github.com/devkitPro/libnds/blob/154a21cc3d57716f773ff2b10f815511c1b8ba9f/source/common/interrupts.c#L51-L69
 //---------------------------------------------------------------------------------
-void powerButtonCB() {
+TWL_CODE void i2cIRQHandlerCustom() {
 //---------------------------------------------------------------------------------
-	exitflag = true;
+	int cause = (i2cReadRegister(I2C_PM, I2CREGPM_PWRIF) & 0x3) | (i2cReadRegister(I2C_GPIO, 0x02)<<2);
+
+	switch (cause & 3) {
+		case 1:
+			reboot = true;
+			exitflag = true;
+			break;
+		case 2:
+			reboot = false;
+			exitflag = true;
+			break;
+	}
 }
 
 void set_ctr(u32* ctr){
@@ -96,6 +110,7 @@ int main() {
 	ledBlink(0);
 
 	irqInit();
+	irqSetAUX(IRQ_I2C, i2cIRQHandlerCustom);
 	// Start the RTC tracking IRQ
 	initClockIRQ();
 	fifoInit();
@@ -159,8 +174,6 @@ int main() {
 
 	irqEnable( IRQ_VBLANK | IRQ_VCOUNT | IRQ_NETWORK);
 
-	setPowerButtonCB(powerButtonCB);
-
 	// Keep the ARM7 mostly idle
 	while (!exitflag) {
 		if ( 0 == (REG_KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
@@ -173,6 +186,13 @@ int main() {
 	fifoSendValue32(FIFO_USER_01, 0x54495845); // 'EXIT'
 	fifoWaitValue32(FIFO_USER_02);
 	fifoCheckValue32(FIFO_USER_02);
+
+	if (reboot) {
+		i2cWriteRegister(I2C_PM, I2CREGPM_RESETFLAG, 1);
+		i2cWriteRegister(I2C_PM, I2CREGPM_PWRCNT, 1);
+	} else {
+		writePowerManagement(PM_CONTROL_REG,PM_SYSTEM_PWR);
+	}
 
 	return 0;
 }
