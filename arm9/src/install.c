@@ -299,12 +299,8 @@ bool install(char* fpath, bool systemTitle)
 			return false;
 	}
 
-	if(!sdnandMode && !nandio_unlock_writing())
-		return false;
-
 	//start installation
 	clearScreen(&bottomScreen);
-	iprintf("Installing %s\n\n", fpath); swiWaitForVBlank();
 
 	tDSiHeader* h = getRomHeader(fpath);	
 
@@ -327,8 +323,7 @@ bool install(char* fpath, bool systemTitle)
 		//title id must be one of these
 		if (h->tid_high == 0x00030004 ||
 			h->tid_high == 0x00030005 ||
-			h->tid_high == 0x00030015 ||
-			h->tid_high == 0x00030017)
+			h->tid_high == 0x00030015)
 		{}
 		else
 		{
@@ -339,6 +334,24 @@ bool install(char* fpath, bool systemTitle)
 			iprintf("\x1B[47m");	//white
 			goto error;
 		}
+
+		if (!sdnandMode &&
+			(h->tid_high == 0x00030005 ||
+			h->tid_high == 0x00030015))
+		{
+			iprintf("\x1B[31m");	//red
+			iprintf("Error: ");
+			iprintf("\x1B[33m");	//yellow
+			iprintf("This title cannot be\ninstalled to SysNAND.\n");
+			iprintf("\x1B[47m");	//white
+			goto error;
+		}
+
+		if(!sdnandMode && !nandio_unlock_writing())
+		return false;
+
+		clearScreen(&bottomScreen);
+		iprintf("Installing %s\n\n", fpath); swiWaitForVBlank();
 
 		//get install size
 		iprintf("Install Size: ");
@@ -371,7 +384,7 @@ bool install(char* fpath, bool systemTitle)
 		{
 			if (!_checkDsiSpace(installSize))
 			{
-				if (choicePrint("Install as system title?"))
+				if (sdnandMode && choicePrint("Install as system title?"))
 				{
 					h->tid_high = 0x00030015;
 					fixHeader = true;

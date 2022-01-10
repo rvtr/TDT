@@ -79,12 +79,16 @@ static void generateList(Menu* m)
 {
 	if (!m) return;
 
-	const int NUM_OF_DIRS = 3;
-	const char* dirs[] = {
+	const int NUM_OF_DIRS = sdnandMode ? 3 : 1;
+	const char* sdnandDirs[] = {
 		"00030004",
 		"00030005",
 		"00030015"
 	};
+	const char* nandDirs[] = {
+		"00030004"
+	};
+	const char** dirs = sdnandMode ? sdnandDirs : nandDirs;
 
 	//Reset menu
 	clearMenu(m);

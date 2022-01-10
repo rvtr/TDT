@@ -9,7 +9,7 @@ This has *barely* been tested and should be used with *extreme caution*. Please 
 ## Features
 - Install DSiWare and homebrew onto your hiyaCFW SDNAND and SysNAND DSi Menus.
 
-- Delete system titles and others hidden from Data Management.
+- Delete system titles and others hidden from Data Management on SDNAND.
 
 - Backup and restore installed titles.
 

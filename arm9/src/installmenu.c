@@ -100,7 +100,8 @@ void installMenu()
 								break;
 								
 							case INSTALL_MENU_SYSTEM_TITLE:
-								install(m->items[m->cursor].value, true);
+								if (sdnandMode)
+									install(m->items[m->cursor].value, true);
 								break;
 
 							case INSTALL_MENU_DELETE:
@@ -247,7 +248,7 @@ static int subMenu()
 	Menu* m = newMenu();
 
 	addMenuItem(m, "Install", NULL, 0);
-	addMenuItem(m, "Install as System Title", NULL, 0);
+	addMenuItem(m, sdnandMode ? "Install as System Title" : "\x1B[37m[Disabled]\x1B[47m", NULL, 0);
 	addMenuItem(m, "Delete", NULL, 0);
 	addMenuItem(m, "Back - [B]", NULL, 0);
 
