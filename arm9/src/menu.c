@@ -203,19 +203,21 @@ bool moveCursor(Menu* m)
 	m->changePage = 0;
 	int lastCursor = m->cursor;
 
-	if (keysDown() & KEY_DOWN)
+	u32 down = keysDownRepeat();
+
+	if (down & KEY_DOWN)
 		_moveCursor(m, 1);
 
-	else if (keysDown() & KEY_UP)
+	else if (down & KEY_UP)
 		_moveCursor(m, -1);
 
-	if (keysDown() & KEY_RIGHT)
+	if (down & KEY_RIGHT)
 	{
 		repeat(10)
 			_moveCursor(m, 1);
 	}
 
-	else if (keysDown() & KEY_LEFT)
+	else if (down & KEY_LEFT)
 	{
 		repeat(10)
 			_moveCursor(m, -1);

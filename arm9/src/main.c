@@ -104,6 +104,7 @@ void fifoHandler(u32 value32, void* userdata)
 int main(int argc, char **argv)
 {
 	srand(time(0));
+	keysSetRepeat(25, 5);
 	_setupScreens();
 
 	//DSi check
