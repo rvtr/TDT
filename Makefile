@@ -17,7 +17,7 @@ GAME_TITLE		:=	NAND Title Manager
 GAME_SUBTITLE1	:=	JeffRuLz, Pk11
 
 GAME_CODE		:= HTMA
-GAME_LABEL		:= TITLEMAN
+GAME_LABEL		:= NANDTM
 
 include $(DEVKITARM)/ds_rules
 
