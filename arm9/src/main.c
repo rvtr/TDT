@@ -9,6 +9,8 @@
 bool programEnd = false;
 bool sdnandMode = true;
 bool arm7Exiting = false;
+bool charging = false;
+u8 batteryLevel = 0;
 
 PrintConsole topScreen;
 PrintConsole bottomScreen;
@@ -92,13 +94,19 @@ static int _mainMenu(int cursor)
 	return result;
 }
 
-void fifoHandler(u32 value32, void* userdata)
+void fifoHandlerPower(u32 value32, void* userdata)
 {
 	if (value32 == 0x54495845) // 'EXIT'
 	{
 		programEnd = true;
 		arm7Exiting = true;
 	}
+}
+
+void fifoHandlerBattery(u32 value32, void* userdata)
+{
+	batteryLevel = value32 & 0xF;
+	charging = (value32 & BIT(7)) != 0;
 }
 
 int main(int argc, char **argv)
@@ -146,7 +154,8 @@ int main(int argc, char **argv)
 	//main menu
 	int cursor = 0;
 
-	fifoSetValue32Handler(FIFO_USER_01, fifoHandler, NULL);
+	fifoSetValue32Handler(FIFO_USER_01, fifoHandlerPower, NULL);
+	fifoSetValue32Handler(FIFO_USER_03, fifoHandlerBattery, NULL);
 
 	while (!programEnd)
 	{

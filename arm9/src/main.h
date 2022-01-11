@@ -7,6 +7,8 @@
 
 extern bool programEnd;
 extern bool sdnandMode;
+extern bool charging;
+extern u8 batteryLevel;
 
 void installMenu();
 void titleMenu();

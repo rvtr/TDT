@@ -286,6 +286,13 @@ bool install(char* fpath, bool systemTitle)
 {
 	bool result = false;
 
+	//check battery level
+	while (batteryLevel < 7 && !charging)
+	{
+		if (choiceBox("\x1B[47mBattery is too low!\nPlease plug in the console.\n\nContinue?") == NO)
+			return false;
+	}
+
 	//confirmation message
 	{
 		char str[] = "Are you sure you want to install\n";

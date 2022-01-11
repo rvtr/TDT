@@ -179,6 +179,14 @@ int main() {
 		if ( 0 == (REG_KEYINPUT & (KEY_SELECT | KEY_START | KEY_L | KEY_R))) {
 			exitflag = true;
 		}
+
+		int batteryStatus;
+		if (isDSiMode() || REG_SCFG_EXT != 0)
+			batteryStatus = i2cReadRegister(I2C_PM, I2CREGPM_BATTERY);
+		else
+			batteryStatus = (readPowerManagement(PM_BATTERY_REG) & 1) ? 0x3 : 0xF;
+		fifoSendValue32(FIFO_USER_03, batteryStatus);
+
 		swiWaitForVBlank();
 	}
 
