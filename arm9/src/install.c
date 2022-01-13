@@ -3,7 +3,9 @@
 #include "main.h"
 #include "message.h"
 #include "maketmd.h"
+#include "nand/crypto.h"
 #include "nand/nandio.h"
+#include "nand/ticket0.h"
 #include "rom.h"
 #include "storage.h"
 #include <dirent.h>
@@ -282,6 +284,72 @@ static void _createBannerSav(tDSiHeader* h, char* dataPath)
 	}
 }
 
+static void _createTicket(tDSiHeader *h, char* ticketPath)
+{
+	if (!h) return;
+
+	iprintf("Forging ticket...");
+	swiWaitForVBlank();
+
+	if (!ticketPath)
+	{
+		iprintf("\x1B[31m");	//red
+		iprintf("Failed\n");
+		iprintf("\x1B[47m");	//white
+	}
+	else
+	{
+		const u32 encryptedSize = sizeof(ticket_v0_t) + 0x20;
+		u8 *buffer = (u8*)memalign(4, encryptedSize); //memalign might be needed for encryption, but not sure
+		memset(buffer, 0, encryptedSize);
+		ticket_v0_t *ticket = (ticket_v0_t*)buffer;
+		ticket->sig_type[0] = 0x00;
+		ticket->sig_type[1] = 0x01;
+		ticket->sig_type[2] = 0x00;
+		ticket->sig_type[3] = 0x01;
+		strcpy(ticket->issuer, "Root-CA00000001-XS00000006");
+		PUT_UINT32_BE(h->tid_high, ticket->title_id, 0);
+		PUT_UINT32_BE(h->tid_low, ticket->title_id, 4);
+		memset(ticket->content_access_permissions, 0xFF, 0x20);
+
+		// Encrypt
+		if (dsi_es_block_crypt(buffer, encryptedSize, ENCRYPT) != 0)
+		{
+			iprintf("\x1B[31m");	//red
+			iprintf("Failed\n");
+			iprintf("\x1B[47m");	//white
+			free(buffer);
+			return;
+		}
+
+		FILE *file = fopen(ticketPath, "wb");
+		if (!file)
+		{
+			iprintf("\x1B[31m");	//red
+			iprintf("Failed\n");
+			iprintf("\x1B[47m");	//white
+			free(buffer);
+			return;
+		}
+
+		if (fwrite(buffer, 1, encryptedSize, file) != encryptedSize)
+		{
+			iprintf("\x1B[31m");	//red
+			iprintf("Failed\n");
+			iprintf("\x1B[47m");	//white
+		}
+		else
+		{
+			iprintf("\x1B[42m");	//green
+			iprintf("Done\n");
+			iprintf("\x1B[47m");	//white
+		}
+
+		free(buffer);
+		fclose(file);
+	}
+}
+
 bool install(char* fpath, bool systemTitle)
 {
 	bool result = false;
@@ -360,12 +428,21 @@ bool install(char* fpath, bool systemTitle)
 		clearScreen(&bottomScreen);
 		iprintf("Installing %s\n\n", fpath); swiWaitForVBlank();
 
+		//check for legit TMD, if found we'll generate a ticket which increases the size
+		int extensionPos = strrchr(fpath, '.') - fpath;
+		char tmdPath[PATH_MAX];
+		strcpy(tmdPath, fpath);
+		strcpy(tmdPath + extensionPos, ".tmd");
+		//DSi TMDs are 520, TMDs from NUS are 2,312. If 2,312 we can simply trim it to 520
+		bool tmdFound = (getFileSizePath(tmdPath) >= 520) || (getFileSizePath(tmdPath) == 2312);
+
 		//get install size
 		iprintf("Install Size: ");
 		swiWaitForVBlank();
 		
 		unsigned long long fileSize = getRomSize(fpath);
 		unsigned long long installSize = fileSize + _getSaveDataSize(h);
+		if (tmdFound) installSize += 708;
 
 		printBytes(installSize);
 		iprintf("\n");
@@ -404,9 +481,7 @@ bool install(char* fpath, bool systemTitle)
 			}
 		}
 
-		//check for saves or legit tmd
-		int extensionPos = strrchr(fpath, '.') - fpath;
-
+		//check for saves
 		char pubPath[PATH_MAX];
 		strcpy(pubPath, fpath);
 		strcpy(pubPath + extensionPos, ".pub");
@@ -442,11 +517,6 @@ bool install(char* fpath, bool systemTitle)
 			else
 				goto error;
 		}
-
-		char tmdPath[PATH_MAX];
-		strcpy(tmdPath, fpath);
-		strcpy(tmdPath + extensionPos, ".tmd");
-		bool tmdFound = getFileSizePath(tmdPath) == 520;
 
 		if (_iqueHack(h))
 			fixHeader = true;
@@ -607,7 +677,7 @@ bool install(char* fpath, bool systemTitle)
 				sprintf(newTmdPath, "%s/title.tmd", contentPath);
 				if (tmdFound)
 				{
-					if (copyFile(tmdPath, newTmdPath) != 0)
+					if (copyFilePart(tmdPath, 0, 520, newTmdPath) != 0)
 						goto error;
 				}
 				else
@@ -657,6 +727,23 @@ bool install(char* fpath, bool systemTitle)
 			{
 				_createBannerSav(h, dataPath);
 			}
+		}
+
+		//ticket folder /ticket/XXXXXXXX
+		if (tmdFound)
+		{
+			//ensure folders exist
+			char ticketPath[32];
+			siprintf(ticketPath, "%s:/ticket", sdnandMode ? "sd" : "nand");
+			mkdir(ticketPath, 0777);
+			siprintf(ticketPath, "%s/%08lx", ticketPath, h->tid_high);
+			mkdir(ticketPath, 0777);
+
+			//actual tik path
+			siprintf(ticketPath, "%s/%08lx.tik", ticketPath, h->tid_low);
+
+			if (access(ticketPath, F_OK) != 0 || choicePrint("Ticket already exists.\nKeep it?") == NO)
+				_createTicket(h, ticketPath);
 		}
 
 		//end

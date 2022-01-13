@@ -11,7 +11,7 @@
 
 static dsi_context nand_ctx ;
 static dsi_context boot2_ctx ;
-static dsi_context es_ctx ;
+static dsi_es_context es_ctx ;
 
 static uint8_t nand_ctr_iv[16];
 static uint8_t boot2_ctr[16];
@@ -62,13 +62,17 @@ void dsi_crypt_init(const uint8_t *console_id_be, const uint8_t *emmc_cid, int i
 	GET_UINT32_BE(console_id[1], console_id_be, 0);
 
 	uint8_t key[16];
-  generate_key(key, console_id, is3DS ? NAND_3DS : NAND);
-  dsi_set_key(&nand_ctx, key) ;
+	generate_key(key, console_id, is3DS ? NAND_3DS : NAND);
+	dsi_set_key(&nand_ctx, key) ;
 
-  generate_key(key, console_id, ES);
-  dsi_set_key(&es_ctx, key) ;
+	u32 normalkey[4];
+	u32 tadsrl_keyX[4] = {0x4E00004A, 0x4A00004E, 0, 0};
+	tadsrl_keyX[2] = console_id[1] ^ 0xC80C4B72;
+	tadsrl_keyX[3] = console_id[0];
+	F_XY((u8 *)normalkey, (u8 *)tadsrl_keyX, DSi_ES_KEY_Y);
+	dsi_es_init(&es_ctx, (u8*)normalkey);
 
-  dsi_set_key(&boot2_ctx, DSi_BOOT2_KEY) ;
+	dsi_set_key(&boot2_ctx, DSi_BOOT2_KEY) ;
 
 	swiSHA1Calc(nand_ctr_iv, emmc_cid, 16);
 
@@ -99,7 +103,17 @@ void dsi_nand_crypt(uint8_t* out, const uint8_t* in, uint32_t offset, unsigned c
     u128_add32(ctr, 1);
 	}
 }
-	
+
+int dsi_es_block_crypt(uint8_t *buf, unsigned buf_len, crypt_mode_t mode)
+{
+	if(mode == DECRYPT)
+		return dsi_es_decrypt(&es_ctx, buf, buf + buf_len - 0x20, buf_len - 0x20);
+	else
+		dsi_es_encrypt(&es_ctx, buf, buf + buf_len - 0x20, buf_len - 0x20);
+
+	return 0;
+}
+
 void dsi_boot2_crypt_set_ctr(uint32_t size_r) 
 {
   for (int i=0;i<4;i++)
