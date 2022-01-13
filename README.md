@@ -16,6 +16,13 @@ This has *barely* been tested and should be used with *extreme caution*. Please 
 - Backup your SD card and your NAND! Nothing bad should happen, but this is an early release so who knows
 - This cannot install cartridge games or older DS homebrew directly, for those you need to make [forwarders](https://wiki.ds-homebrew.com/ds-index/forwarders)
    - Always test your forwarders from TWiLight Menu++ or Unlaunch before installing to SysNAND
+- Save files and legit TMDs can be used by giving them the following names, where `[rom name]` is the file name of the ROM *without* the extension
+   - `public.sav` => `[rom name].pub`
+   - `private.sav` => `[rom name].prv`
+   - `banner.sav` => `[rom name].bnr`
+   - `title.tmd` => `[rom name].tmd`
+- If you want your DSiWare to work without RSA patches make sure to provide a legit TMD
+   - Homebrew and DSiWare without a legit TMD require Unlaunch installed with its launcher patches enabled when installed to SysNAND
 - This is only for DSi systems, not 3DS or DS
 
 ## Credits
