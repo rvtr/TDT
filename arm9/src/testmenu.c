@@ -61,7 +61,7 @@ void testMenu()
 		iprintf("\n");
 		swiWaitForVBlank();
 
-		printf("\t%.0f / %.0f blocks\n", (float)free / BYTES_PER_BLOCK, (float)size / BYTES_PER_BLOCK);
+		iprintf("\t%d / %d blocks\n", free / BYTES_PER_BLOCK, size / BYTES_PER_BLOCK);
 	}
 
 	//end

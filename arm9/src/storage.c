@@ -384,7 +384,7 @@ bool deleteDir(char const* path)
 	return result;
 }
 
-unsigned long long getDirSize(const char* path)
+unsigned long long getDirSize(const char* path, u32 blockSize)
 {
 	if (!path) return 0;
 
@@ -404,7 +404,7 @@ unsigned long long getDirSize(const char* path)
 				char fullpath[512];
 				sprintf(fullpath, "%s/%s", path, ent->d_name);
 
-				size += getDirSize(fullpath);
+				size += getDirSize(fullpath, blockSize);
 			}
 			else
 			{				
@@ -412,6 +412,10 @@ unsigned long long getDirSize(const char* path)
 				sprintf(fullpath, "%s/%s", path, ent->d_name);				
 
 				size += getFileSizePath(fullpath);
+
+				// If we've specified a block size, round up to it
+				if ((size % blockSize) != 0)
+					size += blockSize - (size % blockSize);
 			}
 		}
 	}
@@ -493,7 +497,7 @@ unsigned long long getSDCardFree()
 	if (sdIsInserted())
 	{
 		struct statvfs st;
-		if (statvfs("/", &st) == 0)
+		if (statvfs("sd:/", &st) == 0)
 			return st.f_bsize * st.f_bavail;
 	}
 
@@ -503,18 +507,31 @@ unsigned long long getSDCardFree()
 //internal storage
 unsigned long long getDsiSize()
 {
-	struct statvfs st;
-	if (statvfs("nand:/", &st) == 0)
-		return st.f_bsize * st.f_blocks;
-
-	return 0;
+	//The DSi has 256MB of internal storage. Some is unavailable and used by other things.
+	//An empty DSi reads 1024 open blocks
+	return 1024 * BYTES_PER_BLOCK;
 }
 
 unsigned long long getDsiFree()
 {
+	u32 blockSize = 0;
 	struct statvfs st;
 	if (statvfs("nand:/", &st) == 0)
-		return st.f_bsize * st.f_bavail;
+		blockSize = st.f_bsize;
 
-	return 0;
+	//Get free space by subtracting file sizes in nand folders
+	unsigned long long size = getDsiSize();
+	unsigned long long appSize = getDirSize(sdnandMode ? "sd:/title/00030004" : "nand:/title/00030004", blockSize);
+
+	//subtract, but don't go under 0
+	if (appSize > size)
+	{
+		size = 0;
+	}
+	else
+	{
+		size -= appSize;
+	}
+
+	return size;
 }

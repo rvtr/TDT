@@ -26,7 +26,7 @@ bool padFile(char const* path, int size);
 bool dirExists(char const* path);
 bool copyDir(char const* src, char const* dst);
 bool deleteDir(char const* path);
-unsigned long long getDirSize(char const* path);
+unsigned long long getDirSize(char const* path, u32 blockSize);
 
 //home menu
 int getMenuSlots();

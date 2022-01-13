@@ -278,9 +278,9 @@ static void backup(Menu* m)
 		char* srcpath = (char*)malloc(strlen("nand:/title/") + 32);
 		sprintf(srcpath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)tid_high, (unsigned int)tid_low);
 
-		if (getSDCardFree() < getDirSize(srcpath))
+		if (getSDCardFree() < getDirSize(srcpath, 0))
 		{
-			messageBox("Not enough space on NAND.");
+			messageBox("Not enough space on SD.");
 		}
 		else
 		{
