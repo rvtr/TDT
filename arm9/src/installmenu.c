@@ -163,7 +163,7 @@ static void generateList(Menu* m)
 		//scan /dsi/
 		while ( (ent = readdir(dir)) && !done)
 		{
-			if (strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
+			if (ent->d_name[0] == '.')
 				continue;
 
 			if (ent->d_type == DT_DIR)
