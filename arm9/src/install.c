@@ -480,11 +480,10 @@ bool install(char* fpath, bool systemTitle)
 				{
 					h->tid_high = 0x00030015;
 					fixHeader = true;
-				}				
+				}
 				else
 				{
-					if (choicePrint("Try installing anyway?") == NO)
-						goto error;
+					goto error;
 				}
 			}
 		}
