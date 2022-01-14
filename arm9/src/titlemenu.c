@@ -355,7 +355,6 @@ static bool delete(Menu* m)
 		{
 			char dirPath[64];
 			sprintf(dirPath, "%.*s", sdnandMode ? 27 : 29, fpath);
-			nocashMessage(dirPath);
 
 			if (!dirExists(dirPath))
 			{

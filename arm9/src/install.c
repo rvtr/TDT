@@ -361,19 +361,6 @@ bool install(char* fpath, bool systemTitle)
 			return false;
 	}
 
-	//confirmation message
-	{
-		char str[] = "Are you sure you want to install\n";
-		char* msg = (char*)malloc(strlen(str) + strlen(fpath) + 8);
-		sprintf(msg, "%s%s\n", str, fpath);
-		
-		bool choice = choiceBox(msg);
-		free(msg);
-		
-		if (choice == NO)
-			return false;
-	}
-
 	//start installation
 	clearScreen(&bottomScreen);
 
@@ -420,6 +407,19 @@ bool install(char* fpath, bool systemTitle)
 			iprintf("This title cannot be\ninstalled to SysNAND.\n");
 			iprintf("\x1B[47m");	//white
 			goto error;
+		}
+
+		//confirmation message
+		{
+			char str[] = "Are you sure you want to install\n";
+			char* msg = (char*)malloc(strlen(str) + strlen(fpath) + 8);
+			sprintf(msg, "%s%s\n", str, fpath);
+			
+			bool choice = choiceBox(msg);
+			free(msg);
+			
+			if (choice == NO)
+				return false;
 		}
 
 		if (!sdnandMode && !nandio_unlock_writing())
