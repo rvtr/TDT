@@ -141,7 +141,7 @@ static bool _openMenuSlot()
 		iprintf("\x1B[31m");	//red
 		iprintf("No\n");
 		iprintf("\x1B[47m");	//white
-		return choicePrint("Try installing anyway?");
+		return false;
 	}
 
 	iprintf("\x1B[42m");	//green
