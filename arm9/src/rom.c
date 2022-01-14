@@ -182,8 +182,10 @@ void printRomInfo(char const* fpath)
 			//file size
 			{
 				iprintf("Size: ");
-				printBytes(getRomSize(fpath));
-				iprintf("\n");
+				unsigned long long romSize = getRomSize(fpath);
+				printBytes(romSize);
+				//size in blocks, rounded up
+				iprintf(" (%lld blocks)\n", ((romSize / BYTES_PER_BLOCK) * BYTES_PER_BLOCK + BYTES_PER_BLOCK) / BYTES_PER_BLOCK);
 			}
 
 			iprintf("Label: %.12s\n", h->ndshdr.gameTitle);
