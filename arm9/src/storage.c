@@ -514,10 +514,7 @@ unsigned long long getDsiSize()
 
 unsigned long long getDsiFree()
 {
-	u32 blockSize = 0;
-	struct statvfs st;
-	if (statvfs("nand:/", &st) == 0)
-		blockSize = st.f_bsize;
+	u32 blockSize = getDsiClusterSize();
 
 	//Get free space by subtracting file sizes in nand folders
 	unsigned long long size = getDsiSize();
@@ -534,4 +531,13 @@ unsigned long long getDsiFree()
 	}
 
 	return size;
+}
+
+u32 getDsiClusterSize()
+{
+	struct statvfs st;
+	if (statvfs(sdnandMode ? "sd:/" : "nand:/", &st) == 0)
+		return st.f_bsize;
+
+	return 0;
 }

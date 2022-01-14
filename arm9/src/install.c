@@ -447,10 +447,14 @@ bool install(char* fpath, bool systemTitle)
 		//get install size
 		iprintf("Install Size: ");
 		swiWaitForVBlank();
-		
+
+		u32 clusterSize = getDsiClusterSize();
 		unsigned long long fileSize = getRomSize(fpath);
-		unsigned long long installSize = fileSize + _getSaveDataSize(h);
-		if (tmdFound) installSize += 708;
+		if ((fileSize % clusterSize) != 0)
+			fileSize += clusterSize - (fileSize % clusterSize);
+		//file + saves + TMD (rounded up to cluster size)
+		unsigned long long installSize = fileSize + _getSaveDataSize(h) + clusterSize;
+		if (tmdFound) installSize += clusterSize; //ticket, rounded up to cluster size
 
 		printBytes(installSize);
 		iprintf("\n");
