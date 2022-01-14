@@ -69,7 +69,7 @@ static int _mainMenu(int cursor)
 	addMenuItem(m, "Restore", NULL, 0);
 	addMenuItem(m, "Test", NULL, 0);
 	addMenuItem(m, "Fix FAT copy mismatch", NULL, 0);
-	addMenuItem(m, "Shut Down", NULL, 0);
+	addMenuItem(m, "Exit", NULL, 0);
 
 	m->cursor = cursor;
 
