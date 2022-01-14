@@ -434,7 +434,15 @@ bool install(char* fpath, bool systemTitle)
 		strcpy(tmdPath, fpath);
 		strcpy(tmdPath + extensionPos, ".tmd");
 		//DSi TMDs are 520, TMDs from NUS are 2,312. If 2,312 we can simply trim it to 520
-		bool tmdFound = (getFileSizePath(tmdPath) >= 520) || (getFileSizePath(tmdPath) == 2312);
+		int tmdSize = getFileSizePath(tmdPath);
+		bool tmdFound = (tmdSize == 520) || (tmdSize == 2312);
+		if (access(tmdPath, F_OK) == 0 && !tmdFound)
+		{
+			if (choicePrint("Incorrect TMD.\nInstall anyway?") == YES)
+				tmdFound = false;
+			else
+				goto error;
+		}
 
 		//get install size
 		iprintf("Install Size: ");

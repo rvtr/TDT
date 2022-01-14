@@ -1,6 +1,7 @@
 #include "rom.h"
 #include "main.h"
 #include "storage.h"
+#include <dirent.h>
 #include <nds.h>
 #include <malloc.h>
 #include <stdio.h>
@@ -232,6 +233,28 @@ void printRomInfo(char const* fpath)
 
 			//print full file path
 			iprintf("\n%s\n", fpath);
+
+			//print extra files
+			int extensionPos = strrchr(fpath, '.') - fpath;
+			char temp[PATH_MAX];
+			strcpy(temp, fpath);
+			strcpy(temp + extensionPos, ".tmd");
+			//DSi TMDs are 520, TMDs from NUS are 2,312. If 2,312 we can simply trim it to 520
+			int tmdSize = getFileSizePath(temp);
+			if (access(temp, F_OK) == 0)
+				printf("\t\x1B[%om%s\n\x1B[47m", (tmdSize == 520 || tmdSize == 2312) ? 047 : 041, strrchr(temp, '/') + 1);
+
+			strcpy(temp + extensionPos, ".pub");
+			if (access(temp, F_OK) == 0)
+				printf("\t\x1B[%om%s\n\x1B[47m", (getFileSizePath(temp) == h->public_sav_size) ? 047 : 041, strrchr(temp, '/') + 1);
+
+			strcpy(temp + extensionPos, ".prv");
+			if (access(temp, F_OK) == 0)
+				printf("\t\x1B[%om%s\n\x1B[47m", (getFileSizePath(temp) == h->private_sav_size) ? 047 : 041, strrchr(temp, '/') + 1);
+
+			strcpy(temp + extensionPos, ".bnr");
+			if (access(temp, F_OK) == 0)
+				printf("\t\x1B[%om%s\n\x1B[47m", (getFileSizePath(temp) == 0x4000) ? 047 : 041, strrchr(temp, '/') + 1);
 		}
 	}
 
