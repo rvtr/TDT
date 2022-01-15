@@ -112,12 +112,12 @@ static bool _checkSdSpace(unsigned long long size)
 	return true;
 }
 
-static bool _checkDsiSpace(unsigned long long size)
+static bool _checkDsiSpace(unsigned long long size, bool systemApp)
 {
 	iprintf("Enough room on DSi?...");
 	swiWaitForVBlank();
 
-	if (getDsiFree() < size)
+	if ((systemApp ? getDsiRealFree() : getDsiFree()) < size)
 	{
 		iprintf("\x1B[31m");	//red
 		iprintf("No\n");
@@ -397,24 +397,40 @@ bool install(char* fpath, bool systemTitle)
 			goto error;
 		}
 
-		if (!sdnandMode &&
-			(h->tid_high == 0x00030005 ||
-			h->tid_high == 0x00030015))
+		//blacklisted titles
 		{
-			iprintf("\x1B[31m");	//red
-			iprintf("Error: ");
-			iprintf("\x1B[33m");	//yellow
-			iprintf("This title cannot be\ninstalled to SysNAND.\n");
-			iprintf("\x1B[47m");	//white
-			goto error;
+			//tid without region
+			u32 tidLow = (h->tid_low & 0xFFFFFF00);
+			if (!sdnandMode && (
+				(h->tid_high == 0x00030005 && (
+					tidLow == 0x484e4400 || // DS Download Play
+					tidLow == 0x484e4500 || // PictoChat
+					tidLow == 0x484e4900 || // Nintendo DSi Camera
+					tidLow == 0x484e4b00    // Nintendo DSi Sound
+				)) || (h->tid_high == 0x00030015 && (
+					tidLow == 0x484e4200 || // System Settings
+					tidLow == 0x484e4600    // Nintendo DSi Shop
+				))))
+			{
+				iprintf("\x1B[31m");	//red
+				iprintf("Error: ");
+				iprintf("\x1B[33m");	//yellow
+				iprintf("This title cannot be\ninstalled to SysNAND.\n");
+				iprintf("\x1B[47m");	//white
+				goto error;
+			}
 		}
 
 		//confirmation message
 		{
-			char str[] = "Are you sure you want to install\n";
-			char* msg = (char*)malloc(strlen(str) + strlen(fpath) + 8);
-			sprintf(msg, "%s%s\n", str, fpath);
-			
+			const char system[] = "\x1B[41mWARNING:\x1B[47m This is a system app,\ninstalling it is potentially\nmore risky than regular DSiWare.\n\x1B[33m";
+			const char areYouSure[] = "Are you sure you want to install\n";
+			char* msg = (char*)malloc(strlen(system) + strlen(areYouSure) + strlen(fpath) + 2);
+			if(sdnandMode || h->tid_high == 0x00030004)
+				sprintf(msg, "%s%s?\n", areYouSure, fpath);
+			else
+				sprintf(msg, "%s%s%s?\n", system, areYouSure, fpath);
+
 			bool choice = choiceBox(msg);
 			free(msg);
 			
@@ -475,20 +491,17 @@ bool install(char* fpath, bool systemTitle)
 			fixHeader = true;
 		}
 
-		//skip nand check if system title
-		if (h->tid_high != 0x00030015)
+		//check that there's space on nand
+		if (!_checkDsiSpace(installSize, (h->tid_high != 0x00030004)))
 		{
-			if (!_checkDsiSpace(installSize))
+			if (sdnandMode && choicePrint("Install as system title?"))
 			{
-				if (sdnandMode && choicePrint("Install as system title?"))
-				{
-					h->tid_high = 0x00030015;
-					fixHeader = true;
-				}
-				else
-				{
-					goto error;
-				}
+				h->tid_high = 0x00030015;
+				fixHeader = true;
+			}
+			else
+			{
+				goto error;
 			}
 		}
 

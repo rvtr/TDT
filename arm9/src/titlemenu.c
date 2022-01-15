@@ -79,16 +79,12 @@ static void generateList(Menu* m)
 {
 	if (!m) return;
 
-	const int NUM_OF_DIRS = sdnandMode ? 3 : 1;
-	const char* sdnandDirs[] = {
+	const int NUM_OF_DIRS = 3;
+	const char* dirs[] = {
 		"00030004",
 		"00030005",
 		"00030015"
 	};
-	const char* nandDirs[] = {
-		"00030004"
-	};
-	const char** dirs = sdnandMode ? sdnandDirs : nandDirs;
 
 	//Reset menu
 	clearMenu(m);
@@ -114,6 +110,21 @@ static void generateList(Menu* m)
 			{
 				if (strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
 					continue;
+
+				//blacklisted titles
+				if (!sdnandMode && (
+					(i == 1 && (
+						strncmp(ent->d_name, "484e44", 6) == 0 || // DS Download Play
+						strncmp(ent->d_name, "484e45", 6) == 0 || // PictoChat
+						strncmp(ent->d_name, "484e49", 6) == 0 || // Nintendo DSi Camera
+						strncmp(ent->d_name, "484e4b", 6) == 0    // Nintendo DSi Sound
+					)) || (i == 2 && (
+						strncmp(ent->d_name, "484e42", 6) == 0 || // System Settings
+						strncmp(ent->d_name, "484e46", 6) == 0    // Nintendo DSi Shop
+					))))
+				{
+					continue;
+				}
 
 				if (ent->d_type == DT_DIR)
 				{
