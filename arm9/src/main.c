@@ -136,17 +136,26 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	for (char region = 'A'; region <= 'Z'; region++)
+	//check for unlaunch
 	{
-		char path[64];
-		sprintf(path, "nand:/title/00030017/484e41%02x/content/title.tmd", region);
-		unsigned long long tmdSize = getFileSizePath(path);
-		if (tmdSize != 0)
+		bool unlaunchFound = false;
+		FILE *file = fopen("nand:/sys/HWINFO_S.dat", "rb");
+		if (file)
 		{
-			if (tmdSize <= 520)
-				messageBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
-			break;
+			fseek(file, 0xA0, SEEK_SET);
+			u32 launcherTid;
+			fread(&launcherTid, sizeof(u32), 1, file);
+			fclose(file);
+
+			char path[64];
+			sprintf(path, "nand:/title/00030017/%08lx/content/title.tmd", launcherTid);
+			unsigned long long tmdSize = getFileSizePath(path);
+			if (tmdSize > 520)
+				unlaunchFound = true;
 		}
+
+		if (!unlaunchFound)
+			messageBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
 	}
 
 	messageBox("\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!");
