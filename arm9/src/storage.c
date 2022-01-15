@@ -48,15 +48,15 @@ void printProgressBar(float percent)
 
 		//Print bars
 		if (bars > 0)
-		{			
+		{
 			for (int i = 0; i < bars; i++)
-				iprintf("\x1b[23;%dH|", 1 + i);			
+				iprintf("\x1b[23;%dH|", 1 + i);
 		}
 
 		lastBars = bars;
 
 		iprintf("\x1B[47m");	//white
-	}	
+	}
 }
 
 void clearProgressBar()
@@ -150,7 +150,7 @@ int copyFilePart(char const* src, u32 offset, u32 size, char const* dst)
 	}
 
 	fclose(fin);
-	return 0;	
+	return 0;
 }
 
 unsigned long long getFileSize(FILE* f)
@@ -257,7 +257,7 @@ bool copyDir(char const* src, char const* dst)
 				iprintf("%s -> \n%s...", fsrc, fdst);
 
 				int ret = copyFile(fsrc, fdst);
-				
+
 				if (ret != 0)
 				{
 					iprintf("\x1B[31m");	//red
@@ -407,9 +407,9 @@ unsigned long long getDirSize(const char* path, u32 blockSize)
 				size += getDirSize(fullpath, blockSize);
 			}
 			else
-			{				
+			{
 				char fullpath[260];
-				sprintf(fullpath, "%s/%s", path, ent->d_name);				
+				sprintf(fullpath, "%s/%s", path, ent->d_name);
 
 				size += getFileSizePath(fullpath);
 
@@ -444,32 +444,32 @@ int getMenuSlotsFree()
 	};
 
 	int freeSlots = getMenuSlots();
-	
+
 	DIR* dir;
-	struct dirent* ent;	
-	
+	struct dirent* ent;
+
 	for (int i = 0; i < NUM_OF_DIRS; i++)
 	{
 		char path[256];
 		sprintf(path, "%s:/title/%s", sdnandMode ? "sd" : "nand", dirs[i]);
-		
+
 		dir = opendir(path);
-		
+
 		if (dir)
 		{
 			while ( (ent = readdir(dir)) != NULL )
 			{
 				if (strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0)
 					continue;
-				
+
 				if (ent->d_type == DT_DIR)
 					freeSlots -= 1;
-			}			
+			}
 		}
 
 		closedir(dir);
 	}
-	
+
 	return freeSlots;
 }
 

@@ -34,7 +34,7 @@ static bool _patchGameCode(tDSiHeader* h)
 
 		//set as standard app
 		h->tid_high = 0x00030004;
-		
+
 		do {
 			do {
 				//generate a random game code
@@ -42,7 +42,7 @@ static bool _patchGameCode(tDSiHeader* h)
 					h->ndshdr.gameCode[i] = 'A' + (rand() % 26);
 			}
 			while (h->ndshdr.gameCode[0] == 'A'); //first letter shouldn't be A
-		
+
 			//correct title id
 			h->tid_low = ( (h->ndshdr.gameCode[0] << 24) | (h->ndshdr.gameCode[1] << 16) | (h->ndshdr.gameCode[2] << 8) | h->ndshdr.gameCode[3] );
 		}
@@ -63,8 +63,8 @@ static bool _iqueHack(tDSiHeader* h)
 
 	if (h->ndshdr.reserved1[8] == 0x80)
 	{
-		iprintf("iQue Hack...");	
-		
+		iprintf("iQue Hack...");
+
 		h->ndshdr.reserved1[8] = 0x00;
 
 		iprintf("\x1B[42m");	//green
@@ -191,7 +191,7 @@ static void _createPublicSav(tDSiHeader* h, char* dataPath)
 
 			fclose(f);
 			free(publicPath);
-		}	
+		}
 	}
 }
 
@@ -236,7 +236,7 @@ static void _createPrivateSav(tDSiHeader* h, char* dataPath)
 
 			fclose(f);
 			free(privatePath);
-		}	
+		}
 	}
 }
 
@@ -280,7 +280,7 @@ static void _createBannerSav(tDSiHeader* h, char* dataPath)
 
 			fclose(f);
 			free(bannerPath);
-		}	
+		}
 	}
 }
 
@@ -364,7 +364,7 @@ bool install(char* fpath, bool systemTitle)
 	//start installation
 	clearScreen(&bottomScreen);
 
-	tDSiHeader* h = getRomHeader(fpath);	
+	tDSiHeader* h = getRomHeader(fpath);
 
 	if (!h)
 	{
@@ -426,14 +426,14 @@ bool install(char* fpath, bool systemTitle)
 			const char system[] = "\x1B[41mWARNING:\x1B[47m This is a system app,\ninstalling it is potentially\nmore risky than regular DSiWare.\n\x1B[33m";
 			const char areYouSure[] = "Are you sure you want to install\n";
 			char* msg = (char*)malloc(strlen(system) + strlen(areYouSure) + strlen(fpath) + 2);
-			if(sdnandMode || h->tid_high == 0x00030004)
+			if (sdnandMode || h->tid_high == 0x00030004)
 				sprintf(msg, "%s%s?\n", areYouSure, fpath);
 			else
 				sprintf(msg, "%s%s%s?\n", system, areYouSure, fpath);
 
 			bool choice = choiceBox(msg);
 			free(msg);
-			
+
 			if (choice == NO)
 				return false;
 		}
@@ -556,11 +556,11 @@ bool install(char* fpath, bool systemTitle)
 		//create title directory /title/XXXXXXXX/XXXXXXXX
 		char dirPath[32];
 		mkdir(sdnandMode ? "sd:/title" : "nand:/title", 0777);
-		
+
 		sprintf(dirPath, "%s:/title/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high);
 		mkdir(dirPath, 0777);
 
-		sprintf(dirPath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high, (unsigned int)h->tid_low);	
+		sprintf(dirPath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
 
 		//check if title is free
 		if (_titleIsUsed(h))
@@ -779,7 +779,7 @@ bool install(char* fpath, bool systemTitle)
 		keyWait(KEY_A | KEY_B);
 
 		goto complete;
-	}	
+	}
 
 error:
 	messagePrint("\x1B[31m\nInstallation failed.\n\x1B[47m");

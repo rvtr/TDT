@@ -62,11 +62,11 @@ void titleMenu()
 						{
 							resetMenu(m);
 							generateList(m);
-						}					
+						}
 					}
 					break;
 				}
-				
+
 				printMenu(m);
 			}
 		}
@@ -150,12 +150,12 @@ static void generateList(Menu* m)
 									//current item is not on page
 									if (count < m->page * ITEMS_PER_PAGE)
 										count += 1;
-									
+
 									else
 									{
 										if (m->itemCount >= ITEMS_PER_PAGE)
 											done = true;
-										
+
 										else
 										{
 											//found requested title
@@ -168,7 +168,7 @@ static void generateList(Menu* m)
 											addMenuItem(m, title, path, 0);
 
 											free(path);
-										}																			
+										}
 									}
 								}
 							}
@@ -176,7 +176,7 @@ static void generateList(Menu* m)
 					}
 
 					closedir(subdir);
-					free(contentPath);			
+					free(contentPath);
 				}
 			}
 		}
@@ -379,7 +379,7 @@ static bool delete(Menu* m)
 	if (!m) return false;
 
 	char* fpath = m->items[m->cursor].value;
-	
+
 	bool result = false;
 	bool choice = NO;
 	{
@@ -390,7 +390,7 @@ static bool delete(Menu* m)
 		char str[] = "Are you sure you want to delete\n";
 		char* msg = (char*)malloc(strlen(str) + strlen(title) + 8);
 		sprintf(msg, "%s%s", str, title);
-		
+
 		choice = choiceBox(msg);
 
 		free(msg);

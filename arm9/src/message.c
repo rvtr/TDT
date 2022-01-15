@@ -14,7 +14,7 @@ void keyWait(u32 key)
 }
 
 bool choiceBox(char* message)
-{	
+{
 	const int choiceRow = 10;
 	int cursor = 0;
 

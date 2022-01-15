@@ -5,10 +5,10 @@
  *
  * If you happen to know whom to credit I'd love to add the name
  *
- * Refactored to reduce the pointer casts and remove the dependency 
+ * Refactored to reduce the pointer casts and remove the dependency
  * from tonccpy.
  */
- 
+
 #ifndef _H_F_XY
 #define _H_F_XY
 
@@ -18,10 +18,10 @@ extern "C" {
 
 /************************ Constants / Defines *********************************/
 
-extern const uint8_t DSi_KEY_MAGIC[16] ;
-extern const uint8_t DSi_NAND_KEY_Y[16] ;
-extern const uint8_t DSi_ES_KEY_Y[16] ;
-extern const uint8_t DSi_BOOT2_KEY[16] ;
+extern const uint8_t DSi_KEY_MAGIC[16];
+extern const uint8_t DSi_NAND_KEY_Y[16];
+extern const uint8_t DSi_ES_KEY_Y[16];
+extern const uint8_t DSi_BOOT2_KEY[16];
 
 /************************ Function Protoypes **********************************/
 
@@ -33,4 +33,3 @@ void F_XY_reverse(const uint8_t *key, uint8_t *key_xy);
 #endif
 
 #endif
-

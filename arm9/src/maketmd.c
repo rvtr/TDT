@@ -43,8 +43,8 @@ distribution.
 
 //#define TMD_CREATOR_VER  "0.2"
 
-#define TMD_SIZE		  0x208
-#define SHA_BUFFER_SIZE	  0x200
+#define TMD_SIZE          0x208
+#define SHA_BUFFER_SIZE   0x200
 #define SHA_DIGEST_LENGTH 0x14
 
 void tmd_create(uint8_t* tmd, FILE* app)
@@ -75,7 +75,8 @@ void tmd_create(uint8_t* tmd, FILE* app)
 
 	// Phase 4 - offset 0x1AA (fill-in 0x80 value, 0x10 times)
 	{
-		for(size_t i = 0; i<0x10; i++) {
+		for (size_t i = 0; i<0x10; i++)
+		{
 			tmd[0x1AA + i] = 0x80;
 		}
 	}
@@ -123,7 +124,7 @@ void tmd_create(uint8_t* tmd, FILE* app)
 
 			printProgressBar((float)fileread / (float)filesize);
 		}
-		while(buffer_read == SHA_BUFFER_SIZE);
+		while (buffer_read == SHA_BUFFER_SIZE);
 
 		clearProgressBar();
 		consoleSelect(&bottomScreen);
@@ -140,7 +141,8 @@ int maketmd(char* input, char* tmdPath)
 	iprintf("MakeTMD for DSiWare Homebrew\n");
 	iprintf("by Przemyslaw Skryjomski\n\t(Tuxality)\n");
 
-	if(input == NULL || tmdPath == NULL) {
+	if (input == NULL || tmdPath == NULL)
+	{
 		iprintf("\x1B[33m");	//yellow
 		iprintf("\nUsage: %s file.app <file.tmd>\n", "maketmd");
 		iprintf("\x1B[47m");	//white
@@ -150,7 +152,8 @@ int maketmd(char* input, char* tmdPath)
 	// APP file (input)
 	FILE* app = fopen(input, "rb");
 
-	if(!app) {
+	if (!app)
+	{
 		iprintf("\x1B[31m");	//red
 		iprintf("Error at opening %s for reading.\n", input);
 		iprintf("\x1B[47m");	//white

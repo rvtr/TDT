@@ -4,7 +4,7 @@
 Menu* newMenu()
 {
 	Menu* m = (Menu*)malloc(sizeof(Menu));
-	
+
 	m->cursor = 0;
 	m->page = 0;
 	m->itemCount = 0;
@@ -27,7 +27,7 @@ void freeMenu(Menu* m)
 	if (!m) return;
 
 	clearMenu(m);
-	
+
 	free(m);
 	m = NULL;
 }
@@ -52,7 +52,7 @@ void addMenuItem(Menu* m, char const* label, char const* value, bool directory)
 		m->items[i].value = (char*)malloc(strlen(value)+1);
 		sprintf(m->items[i].value, "%s", value);
 	}
-	
+
 	m->itemCount += 1;
 }
 
@@ -77,7 +77,7 @@ void sortMenuItems(Menu* m)
 void setMenuHeader(Menu* m, char* str)
 {
 	if (!m) return;
-	
+
 	if (!str)
 	{
 		m->header[0] = '\0';
@@ -153,7 +153,7 @@ void printMenu(Menu* m)
 			iprintf(" \n");
 	}
 
-	//cursor	
+	//cursor
 	iprintf("\x1b[%d;0H>", 2 + m->cursor);
 
 	//scroll arrows
@@ -193,7 +193,7 @@ static void _moveCursor(Menu* m, int dir)
 		{
 			m->cursor = m->itemCount-1;
 		}
-	}		
+	}
 }
 
 bool moveCursor(Menu* m)

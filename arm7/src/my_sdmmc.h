@@ -12,7 +12,7 @@
 #define REG_SDPORTSEL   0x02
 #define REG_SDCMDARG    0x04
 #define REG_SDCMDARG0   0x04
-#define REG_SDCMDARG1  	0x06
+#define REG_SDCMDARG1   0x06
 #define REG_SDSTOP      0x08
 #define REG_SDRESP      0x0c
 #define REG_SDBLKCOUNT  0x0a
@@ -98,8 +98,8 @@
 
 #define TMIO_MASK_ALL           0x837f031d
 
-#define TMIO_MASK_GW      (TMIO_STAT1_ILL_ACCESS | TMIO_STAT1_CMDTIMEOUT | TMIO_STAT1_TXUNDERRUN | TMIO_STAT1_RXOVERFLOW | \
-                           TMIO_STAT1_DATATIMEOUT | TMIO_STAT1_STOPBIT_ERR | TMIO_STAT1_CRCFAIL | TMIO_STAT1_CMD_IDX_ERR)
+#define TMIO_MASK_GW   (TMIO_STAT1_ILL_ACCESS | TMIO_STAT1_CMDTIMEOUT | TMIO_STAT1_TXUNDERRUN | TMIO_STAT1_RXOVERFLOW | \
+						TMIO_STAT1_DATATIMEOUT | TMIO_STAT1_STOPBIT_ERR | TMIO_STAT1_CRCFAIL | TMIO_STAT1_CMD_IDX_ERR)
 
 #define TMIO_MASK_READOP  (TMIO_STAT1_RXRDY | TMIO_STAT1_DATAEND)
 #define TMIO_MASK_WRITEOP (TMIO_STAT1_TXRQ | TMIO_STAT1_DATAEND)
@@ -107,25 +107,25 @@
 typedef struct mmcdevice {
 	u8* rData;
 	const u8* tData;
-    u32 size;
-    u32 startOffset;
-    u32 endOffset;
-    u32 error;
-    u16 stat0;
-    u16 stat1;
-    u32 ret[4];
-    u32 initarg;
-    u32 isSDHC;
-    u32 clk;
-    u32 SDOPT;
-    u32 devicenumber;
-    u32 total_size; //size in sectors of the device
-    u32 res;
+	u32 size;
+	u32 startOffset;
+	u32 endOffset;
+	u32 error;
+	u16 stat0;
+	u16 stat1;
+	u32 ret[4];
+	u32 initarg;
+	u32 isSDHC;
+	u32 clk;
+	u32 SDOPT;
+	u32 devicenumber;
+	u32 total_size; //size in sectors of the device
+	u32 res;
 } mmcdevice;
 
 enum {
-    MMC_DEVICE_SDCARD,
-    MMC_DEVICE_NAND,
+	MMC_DEVICE_SDCARD,
+	MMC_DEVICE_NAND,
 };
 
 void my_sdmmc_controller_init(bool force_init);
@@ -136,12 +136,14 @@ int my_sdmmc_sdcard_init();
 int my_sdmmc_nand_init();
 void my_sdmmc_get_cid(int devicenumber, u32 *cid);
 
-static inline void sdmmc_nand_cid( u32 *cid) {
-    my_sdmmc_get_cid(MMC_DEVICE_NAND, cid);
+static inline void sdmmc_nand_cid( u32 *cid)
+{
+	my_sdmmc_get_cid(MMC_DEVICE_NAND, cid);
 }
 
-static inline void sdmmc_sdcard_cid( u32 *cid) {
-    my_sdmmc_get_cid(MMC_DEVICE_SDCARD, cid);
+static inline void sdmmc_sdcard_cid( u32 *cid)
+{
+	my_sdmmc_get_cid(MMC_DEVICE_SDCARD, cid);
 }
 
 int my_sdmmc_sdcard_readsectors(u32 sector_no, u32 numsectors, void *out);
@@ -153,32 +155,37 @@ extern u32 sdmmc_cid[];
 extern int sdmmc_curdevice;
 
 //---------------------------------------------------------------------------------
-static inline u16 sdmmc_read16(u16 reg) {
+static inline u16 sdmmc_read16(u16 reg)
 //---------------------------------------------------------------------------------
+{
 	return *(vu16*)(SDMMC_BASE + reg);
 }
 
 //---------------------------------------------------------------------------------
-static inline void sdmmc_write16(u16 reg, u16 val) {
+static inline void sdmmc_write16(u16 reg, u16 val)
 //---------------------------------------------------------------------------------
+{
 	*(vu16*)(SDMMC_BASE + reg) = val;
 }
 
 //---------------------------------------------------------------------------------
-static inline u32 sdmmc_read32(u16 reg) {
+static inline u32 sdmmc_read32(u16 reg)
 //---------------------------------------------------------------------------------
-    return *(vu32*)(SDMMC_BASE + reg);
+{
+	return *(vu32*)(SDMMC_BASE + reg);
 }
 
 //---------------------------------------------------------------------------------
-static inline void sdmmc_write32(u16 reg, u32 val) {
+static inline void sdmmc_write32(u16 reg, u32 val)
 //---------------------------------------------------------------------------------
-    *(vu32*)(SDMMC_BASE + reg) = val;
+{
+	*(vu32*)(SDMMC_BASE + reg) = val;
 }
 
 //---------------------------------------------------------------------------------
-static inline void sdmmc_mask16(u16 reg, u16 clear, u16 set) {
+static inline void sdmmc_mask16(u16 reg, u16 clear, u16 set)
 //---------------------------------------------------------------------------------
+{
 	u16 val = sdmmc_read16(reg);
 	val &= ~clear;
 	val |= set;
@@ -187,11 +194,12 @@ static inline void sdmmc_mask16(u16 reg, u16 clear, u16 set) {
 
 
 //---------------------------------------------------------------------------------
-static inline void setckl(u32 data) {
+static inline void setckl(u32 data)
 //---------------------------------------------------------------------------------
-    sdmmc_mask16(REG_SDCLKCTL, 0x100, 0);
-    sdmmc_mask16(REG_SDCLKCTL, 0x2FF, data & 0x2FF);
-    sdmmc_mask16(REG_SDCLKCTL, 0x0, 0x100);
+{
+	sdmmc_mask16(REG_SDCLKCTL, 0x100, 0);
+	sdmmc_mask16(REG_SDCLKCTL, 0x2FF, data & 0x2FF);
+	sdmmc_mask16(REG_SDCLKCTL, 0x0, 0x100);
 }
 
 #endif

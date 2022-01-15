@@ -39,7 +39,7 @@ void testMenu()
 		swiWaitForVBlank();
 
 		unsigned long long sdsize = getSDCardSize();
-		printBytes(sdsize);	
+		printBytes(sdsize);
 		iprintf("\n");
 		swiWaitForVBlank();
 

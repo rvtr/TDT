@@ -61,7 +61,7 @@ tNDSBanner* getRomBanner(char const* fpath)
 		}
 
 		free(h);
-		fclose(f);		
+		fclose(f);
 	}
 
 	return b;
@@ -112,7 +112,7 @@ bool getGameTitlePath(char const* fpath, char* out, bool full)
 
 	tNDSBanner* b = getRomBanner(fpath);
 	bool result = getGameTitle(b, out, full);
-	
+
 	free(b);
 	return result;
 }
@@ -134,7 +134,7 @@ bool getRomCode(tDSiHeader* h, char* out)
 
 	sprintf(out, "%.4s", h->ndshdr.gameCode);
 
-	return true;	
+	return true;
 }
 
 void printRomInfo(char const* fpath)
@@ -184,9 +184,9 @@ void printRomInfo(char const* fpath)
 
 				switch (h->ndshdr.unitCode)
 				{
-					case 0:  iprintf("NDS"); 	 break;
+					case 0:  iprintf("NDS");     break;
 					case 2:  iprintf("NDS+DSi"); break;
-					case 3:  iprintf("DSi"); 	 break;
+					case 3:  iprintf("DSi");     break;
 					default: iprintf("unknown");
 				}
 
@@ -199,8 +199,8 @@ void printRomInfo(char const* fpath)
 
 				switch (h->ndshdr.reserved1[7])
 				{
-					case 0x3: iprintf("Normal"); 	break;
-					case 0xB: iprintf("Sys"); 		break;
+					case 0x3: iprintf("Normal");    break;
+					case 0xB: iprintf("Sys");       break;
 					case 0xF: iprintf("Debug/Sys"); break;
 					default:  iprintf("unknown");
 				}
@@ -216,7 +216,7 @@ void printRomInfo(char const* fpath)
 					h->tid_high == 0x00030017 ||
 					h->tid_high == 0x00030000)
 				{
-					iprintf("Title ID: %08x %08x\n", (unsigned int)h->tid_high, (unsigned int)h->tid_low);			
+					iprintf("Title ID: %08x %08x\n", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
 				}
 			}
 

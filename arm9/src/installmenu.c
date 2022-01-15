@@ -98,7 +98,7 @@ void installMenu()
 							case INSTALL_MENU_INSTALL:
 								install(m->items[m->cursor].value, false);
 								break;
-								
+
 							case INSTALL_MENU_SYSTEM_TITLE:
 								if (sdnandMode)
 									install(m->items[m->cursor].value, true);
@@ -114,7 +114,7 @@ void installMenu()
 							}
 							break;
 
-							case INSTALL_MENU_BACK:					
+							case INSTALL_MENU_BACK:
 								break;
 						}
 					}
@@ -154,7 +154,7 @@ static void generateList(Menu* m)
 	if (currentDir[0] == '\0')
 		dir = opendir("sd:/");
 	else
-		dir = opendir(currentDir);	
+		dir = opendir(currentDir);
 
 	if (dir)
 	{
@@ -169,12 +169,12 @@ static void generateList(Menu* m)
 			{
 				if (count < m->page * ITEMS_PER_PAGE)
 						count += 1;
-			
+
 				else
 				{
 					if (m->itemCount >= ITEMS_PER_PAGE)
 						done = true;
-					
+
 					else
 					{
 						char* fpath = (char*)malloc(strlen(currentDir) + strlen(ent->d_name) + 8);
@@ -195,12 +195,12 @@ static void generateList(Menu* m)
 				{
 					if (count < m->page * ITEMS_PER_PAGE)
 						count += 1;
-					
+
 					else
 					{
 						if (m->itemCount >= ITEMS_PER_PAGE)
 							done = true;
-						
+
 						else
 						{
 							char* fpath = (char*)malloc(strlen(currentDir) + strlen(ent->d_name) + 8);
@@ -281,7 +281,7 @@ static int subMenu()
 static bool delete(Menu* m)
 {
 	if (!m) return false;
-	
+
 	char* fpath = m->items[m->cursor].value;
 
 	bool result = false;
@@ -313,7 +313,7 @@ static bool delete(Menu* m)
 			{
 				messageBox("\x1B[31mCould not delete file.\x1B[47m");
 			}
-		}		
+		}
 	}
 
 	return result;

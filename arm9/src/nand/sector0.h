@@ -35,29 +35,26 @@ extern "C" {
 /************************ Structures / Datatypes ******************************/
 
 #ifdef _MSC_VER
-  #pragma pack(push, 1)
-  #define __PACKED
+	#pragma pack(push, 1)
+	#define __PACKED
 #elif defined __GNUC__
-  #define __PACKED __attribute__ ((__packed__))
+	#define __PACKED __attribute__ ((__packed__))
 #endif
 
 typedef struct {
-  uint32_t         offset,
-                   length;
+	uint32_t offset, length;
 } __PACKED ncsd_partition_t;
 
 typedef struct {
-  uint8_t digest[NCSD_SIGNATURESIZE] ;
-} __PACKED ncsd_sginature ;
+	uint8_t digest[NCSD_SIGNATURESIZE];
+} __PACKED ncsd_sginature;
 
 typedef struct {
-  ncsd_sginature   signature;
-  uint32_t         magic,
-                   size;
-  uint64_t         media_id;
-  uint8_t          fs_types[NCSD_PARTITIONS],
-                   crypt_types[NCSD_PARTITIONS];
-  ncsd_partition_t partitions[NCSD_PARTITIONS];
+	ncsd_sginature signature;
+	uint32_t magic, size;
+	uint64_t media_id;
+	uint8_t fs_types[NCSD_PARTITIONS], crypt_types[NCSD_PARTITIONS];
+	ncsd_partition_t partitions[NCSD_PARTITIONS];
 } __PACKED ncsd_header_t;
 
 /*
@@ -73,11 +70,11 @@ typedef struct {
  * |        |              |    Bit 14..23: Cylinder          |
  *  ----------------------------------------------------------
  */
- 
+
 typedef struct {
-  uint8_t head;
-  uint8_t sectorAndCylHigh;
-  uint8_t cylinderLow;
+	uint8_t head;
+	uint8_t sectorAndCylHigh;
+	uint8_t cylinderLow;
 } __PACKED chs_t;
 
 /*
@@ -110,12 +107,12 @@ typedef struct {
  */
 
 typedef struct {
-  uint8_t status;
-  chs_t chs_first;
-  uint8_t type;
-  chs_t chs_last;
-  uint32_t offset;
-  uint32_t length;
+	uint8_t status;
+	chs_t chs_first;
+	uint8_t type;
+	chs_t chs_last;
+	uint32_t offset;
+	uint32_t length;
 } __PACKED mbr_partition_t;
 
 /*
@@ -140,13 +137,13 @@ typedef struct {
  */
 
 typedef struct {
-  uint8_t bootstrap[MBR_BOOTSTRAP_SIZE];
-  mbr_partition_t partitions[MBR_PARTITIONS];
-  uint8_t boot_signature[2];
+	uint8_t bootstrap[MBR_BOOTSTRAP_SIZE];
+	mbr_partition_t partitions[MBR_PARTITIONS];
+	uint8_t boot_signature[2];
 } __PACKED mbr_t;
 
 #ifdef _MSC_VER
-  #pragma pack(pop)
+	#pragma pack(pop)
 #endif
 #undef __PACKED
 
@@ -159,10 +156,8 @@ int parse_mbr(const uint8_t sector0[SECTOR_SIZE], const int is3DS);
 
 /************************ static code verification ****************************/
 
-static_assert(sizeof(ncsd_header_t) == NCSD_HEADERSIZE, 
-                "sizeof(ncsd_header_t) should equal 0x160");
-static_assert(sizeof(mbr_t) == SECTOR_SIZE, 
-                "sizeof(mbr_t) should equal 0x200");
+static_assert(sizeof(ncsd_header_t) == NCSD_HEADERSIZE, "sizeof(ncsd_header_t) should equal 0x160");
+static_assert(sizeof(mbr_t) == SECTOR_SIZE, "sizeof(mbr_t) should equal 0x200");
 
 #ifdef __cplusplus
 }

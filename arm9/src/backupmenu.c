@@ -140,12 +140,12 @@ static void generateList(Menu* m)
 			{
 				if (count < m->page * ITEMS_PER_PAGE)
 						count += 1;
-			
+
 				else
 				{
 					if (m->itemCount >= ITEMS_PER_PAGE)
 						done = true;
-					
+
 					else
 					{
 						char* fpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(ent->d_name) + 8);
@@ -166,12 +166,12 @@ static void generateList(Menu* m)
 				{
 					if (count < m->page * ITEMS_PER_PAGE)
 						count += 1;
-					
+
 					else
 					{
 						if (m->itemCount >= ITEMS_PER_PAGE)
 							done = true;
-						
+
 						else
 						{
 							char* fpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(ent->d_name) + 8);
