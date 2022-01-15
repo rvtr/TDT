@@ -2,13 +2,11 @@
 A basic title manager for the Nintendo DSi supporting both hiyaCFW's SDNAND and SysNAND, modified from JeffRuLz's Title Manager for HiyaCFW.
 
 ## WARNING
-This can modify your internal system NAND! There is *always* a risk of **bricking**, albeit small, when you modify NAND. Please proceed with caution.
-
-This has *barely* been tested and should be used with *extreme caution*. Please always use with Unlaunch installed.
+This can modify your internal system NAND! There is *always* a risk of **bricking**, albeit small, when you modify NAND. Please proceed with caution. Having Unlaunch installed is also strongly recommended as it will likely protect you if something manages to go wrong.
 
 ## Features
 - Install DSiWare and homebrew onto your hiyaCFW SDNAND and SysNAND DSi Menus
-- Delete system titles and others hidden from Data Management on SDNAND
+- Delete system titles and others hidden from Data Management
 - Backup and restore installed titles
 - View basic title header info
 
