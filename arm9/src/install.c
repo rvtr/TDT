@@ -766,7 +766,7 @@ bool install(char* fpath, bool systemTitle)
 			//actual tik path
 			siprintf(ticketPath, "%s/%08lx.tik", ticketPath, h->tid_low);
 
-			if (access(ticketPath, F_OK) != 0 || choicePrint("Ticket already exists.\nKeep it?") == NO)
+			if (access(ticketPath, F_OK) != 0 || (choicePrint("Ticket already exists.\nKeep it? (recommended)") == NO && choicePrint("Are you sure?") == YES))
 				_createTicket(h, ticketPath);
 		}
 
