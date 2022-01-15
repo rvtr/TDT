@@ -117,6 +117,7 @@ static void generateList(Menu* m)
 						strncmp(ent->d_name, "484e44", 6) == 0 || // DS Download Play
 						strncmp(ent->d_name, "484e45", 6) == 0 || // PictoChat
 						strncmp(ent->d_name, "484e49", 6) == 0 || // Nintendo DSi Camera
+						strncmp(ent->d_name, "484e4a", 6) == 0 || // Nintendo Zone
 						strncmp(ent->d_name, "484e4b", 6) == 0    // Nintendo DSi Sound
 					)) || (i == 2 && (
 						strncmp(ent->d_name, "484e42", 6) == 0 || // System Settings

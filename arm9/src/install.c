@@ -406,6 +406,7 @@ bool install(char* fpath, bool systemTitle)
 					tidLow == 0x484e4400 || // DS Download Play
 					tidLow == 0x484e4500 || // PictoChat
 					tidLow == 0x484e4900 || // Nintendo DSi Camera
+					tidLow == 0x484e4a00 || // Nintendo Zone
 					tidLow == 0x484e4b00    // Nintendo DSi Sound
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
