@@ -41,8 +41,9 @@ unsigned long long getSDCardFree();
 
 //internal storage
 unsigned long long getDsiSize();
-unsigned long long getDsiRealFree();
 unsigned long long getDsiFree();
+unsigned long long getDsiRealSize();
+unsigned long long getDsiRealFree();
 u32 getDsiClusterSize();
 #define getDsiUsed() (getDSIStorageSize() - getDSIStorageFree())
 

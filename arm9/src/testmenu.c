@@ -17,51 +17,56 @@ void testMenu()
 	//home menu slots
 	{
 		iprintf("Free Home Menu Slots:\n");
-		swiWaitForVBlank();
 
 		free = getMenuSlotsFree();
 		iprintf("\t%d / ", free);
-		swiWaitForVBlank();
 
 		size = getMenuSlots();
 		iprintf("%d\n", size);
-		swiWaitForVBlank();
+	}
+
+	//dsi menu
+	{
+		iprintf("\nFree DSi Menu Space:\n\t");
+
+		free = getDsiFree();
+		printBytes(free);
+		iprintf(" / ");
+
+		size = getDsiSize();
+		printBytes(size);
+		iprintf("\n");
+
+		iprintf("\t%d / %d blocks\n", free / BYTES_PER_BLOCK, size / BYTES_PER_BLOCK);
+	}
+
+	//nand
+	if (!sdnandMode)
+	{
+		iprintf("\nFree NAND Space:\n\t");
+
+		free = getDsiRealFree();
+		printBytes(free);
+		iprintf(" / ");
+
+		size = getDsiRealSize();
+		printBytes(size);
+		iprintf("\n");
 	}
 
 	//SD Card
 	{
 		iprintf("\nFree SD Space:\n\t");
-		swiWaitForVBlank();
 
 		unsigned long long sdfree = getSDCardFree();
 		printBytes(sdfree);
 		iprintf(" / ");
-		swiWaitForVBlank();
 
 		unsigned long long sdsize = getSDCardSize();
 		printBytes(sdsize);
 		iprintf("\n");
-		swiWaitForVBlank();
 
 		printf("\t%d / %d blocks\n", (unsigned int)(sdfree / BYTES_PER_BLOCK), (unsigned int)(sdsize / BYTES_PER_BLOCK));
-	}
-
-	//Emunand
-	{
-		iprintf("\nFree DSi Space:\n\t");
-		swiWaitForVBlank();
-
-		free = getDsiFree();
-		printBytes(free);
-		iprintf(" / ");
-		swiWaitForVBlank();
-
-		size = getDsiSize();
-		printBytes(size);
-		iprintf("\n");
-		swiWaitForVBlank();
-
-		iprintf("\t%d / %d blocks\n", free / BYTES_PER_BLOCK, size / BYTES_PER_BLOCK);
 	}
 
 	//end

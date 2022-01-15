@@ -512,15 +512,6 @@ unsigned long long getDsiSize()
 	return 1024 * BYTES_PER_BLOCK;
 }
 
-unsigned long long getDsiRealFree()
-{
-	struct statvfs st;
-	if (statvfs(sdnandMode ? "sd:/" : "nand:/", &st) == 0)
-		return st.f_bsize * st.f_bavail;
-
-	return 0;
-}
-
 unsigned long long getDsiFree()
 {
 	u32 blockSize = getDsiClusterSize();
@@ -542,6 +533,24 @@ unsigned long long getDsiFree()
 	unsigned long long realFree = getDsiRealFree();
 
 	return (realFree < size) ? realFree : size;
+}
+
+unsigned long long getDsiRealSize()
+{
+	struct statvfs st;
+	if (statvfs(sdnandMode ? "sd:/" : "nand:/", &st) == 0)
+		return st.f_bsize * st.f_blocks;
+
+	return 0;
+}
+
+unsigned long long getDsiRealFree()
+{
+	struct statvfs st;
+	if (statvfs(sdnandMode ? "sd:/" : "nand:/", &st) == 0)
+		return st.f_bsize * st.f_bavail;
+
+	return 0;
 }
 
 u32 getDsiClusterSize()
