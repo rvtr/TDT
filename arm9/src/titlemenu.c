@@ -9,14 +9,18 @@
 enum {
 	TITLE_MENU_BACKUP,
 	TITLE_MENU_DELETE,
+	TITLE_MENU_READ_ONLY,
 	TITLE_MENU_BACK
 };
+
+static bool readOnly = false;
 
 static void generateList(Menu* m);
 static void printItem(Menu* m);
 static int subMenu();
 static void backup(Menu* m);
 static bool delete(Menu* m);
+static void toggleReadOnly(Menu* m);
 
 void titleMenu()
 {
@@ -50,6 +54,8 @@ void titleMenu()
 
 			else if (keysDown() & KEY_A)
 			{
+				readOnly = FAT_getAttr(m->items[m->cursor].value) & ATTR_READONLY;
+
 				switch (subMenu())
 				{
 					case TITLE_MENU_BACKUP:
@@ -65,6 +71,9 @@ void titleMenu()
 						}
 					}
 					break;
+					case TITLE_MENU_READ_ONLY:
+						toggleReadOnly(m);
+						break;
 				}
 
 				printMenu(m);
@@ -211,6 +220,7 @@ static int subMenu()
 
 	addMenuItem(m, "Backup", NULL, 0);
 	addMenuItem(m, "Delete", NULL, 0);
+	addMenuItem(m, readOnly ? "Mark not read-only" : "Mark read-only", NULL, 0);
 	addMenuItem(m, "Back - [B]", NULL, 0);
 
 	printMenu(m);
@@ -314,8 +324,6 @@ static void backup(Menu* m)
 			//tmd
 			sprintf(path, "%s/content/title.tmd", srcpath);
 			sprintf(dstpath, "%s/%s.tmd", BACKUP_PATH, backname);
-			nocashMessage(path);
-			nocashMessage(dstpath);
 			if (access(path, F_OK) == 0)
 			{
 				//get app version
@@ -436,4 +444,49 @@ static bool delete(Menu* m)
 	}
 
 	return result;
+}
+
+static void toggleReadOnly(Menu* m)
+{
+	if (!m) return;
+
+	tDSiHeader* h = getRomHeader(m->items[m->cursor].value);
+
+	char path[256];
+	char srcpath[30];
+	sprintf(srcpath, "%s:/title/%08lx/%08lx", sdnandMode ? "sd" : "nand", h->tid_high, h->tid_low);
+
+	if (!sdnandMode && !nandio_unlock_writing()) return;
+
+	//app
+	strcpy(path, m->items[m->cursor].value);
+	if (access(path, F_OK) == 0)
+		FAT_setAttr(path, FAT_getAttr(path) ^ ATTR_READONLY);
+
+	//tmd
+	sprintf(path, "%s/content/title.tmd", srcpath);
+	if (access(path, F_OK) == 0)
+		FAT_setAttr(path, FAT_getAttr(path) ^ ATTR_READONLY);
+
+	//public save
+	sprintf(path, "%s/data/public.sav", srcpath);
+	if (access(path, F_OK) == 0)
+		FAT_setAttr(path, FAT_getAttr(path) ^ ATTR_READONLY);
+
+	//private save
+	sprintf(path, "%s/data/private.sav", srcpath);
+	if (access(path, F_OK) == 0)
+		FAT_setAttr(path, FAT_getAttr(path) ^ ATTR_READONLY);
+
+	//banner save
+	sprintf(path, "%s/data/banner.sav", srcpath);
+	if (access(path, F_OK) == 0)
+		FAT_setAttr(path, FAT_getAttr(path) ^ ATTR_READONLY);
+
+	if (!sdnandMode)
+		nandio_lock_writing();
+
+	free(h);
+
+	messageBox("Title's read-only status\nsuccesfully toggled.");
 }
