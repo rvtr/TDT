@@ -137,19 +137,6 @@ bool getRomCode(tDSiHeader* h, char* out)
 	return true;	
 }
 
-bool getTitleId(tDSiHeader* h, u32* low, u32* high)
-{
-	if (!h) return false;
-
-	if (low != NULL)
-		*low = h->tid_low;
-
-	if (high != NULL)
-		*high = h->tid_high;
-
-	return true;
-}
-
 void printRomInfo(char const* fpath)
 {
 	clearScreen(&topScreen);

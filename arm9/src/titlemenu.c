@@ -228,13 +228,13 @@ static int subMenu()
 static void backup(Menu* m)
 {
 	char* fpath = m->items[m->cursor].value;
-	char* backname = NULL;
+	char *backname = NULL;
 
 	tDSiHeader* h = getRomHeader(fpath);
 
 	{
 		//make backup folder name
-		char label[16];
+		char label[13];
 		getRomLabel(h, label);
 
 		char gamecode[5];
@@ -245,14 +245,14 @@ static void backup(Menu* m)
 
 		//make sure dir is unused
 		char* dstpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(backname) + 32);
-		sprintf(dstpath, "%s/%s", BACKUP_PATH, backname);
+		sprintf(dstpath, "%s/%s.nds", BACKUP_PATH, backname);
 
 		int try = 1;
-		while (dirExists(dstpath))
+		while (access(dstpath, F_OK) == 0)
 		{
 			try += 1;
 			sprintf(backname, "%s-%s(%d)", label, gamecode, try);
-			sprintf(dstpath, "%s/%s", BACKUP_PATH, backname);
+			sprintf(dstpath, "%s/%s.nds", BACKUP_PATH, backname);
 		}
 
 		free(dstpath);
@@ -260,10 +260,10 @@ static void backup(Menu* m)
 
 	bool choice = NO;
 	{
-		char str[] = "Are you sure you want to backup\n";
-		char* msg = (char*)malloc(strlen(str) + strlen(backname) + 1);
-		sprintf(msg, "%s%s", str, backname);
-		
+		const char str[] = "Are you sure you want to backup\n";
+		char* msg = (char*)malloc(strlen(str) + strlen(backname) + 2);
+		sprintf(msg, "%s%s?", str, backname);
+
 		choice = choiceBox(msg);
 
 		free(msg);
@@ -271,12 +271,8 @@ static void backup(Menu* m)
 
 	if (choice == YES)
 	{
-		u32 tid_low = 1;
-		u32 tid_high = 1;
-		getTitleId(h, &tid_low, &tid_high);
-
-		char* srcpath = (char*)malloc(strlen("nand:/title/") + 32);
-		sprintf(srcpath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)tid_high, (unsigned int)tid_low);
+		char srcpath[30];
+		sprintf(srcpath, "%s:/title/%08lx/%08lx", sdnandMode ? "sd" : "nand", h->tid_high, h->tid_low);
 
 		if (getSDCardFree() < getDirSize(srcpath, 0))
 		{
@@ -284,42 +280,86 @@ static void backup(Menu* m)
 		}
 		else
 		{
-			char* dstpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(backname) + 8);
-			sprintf(dstpath, "%s/%s", BACKUP_PATH, backname);
-
 			//create dirs
-			mkdir(BACKUP_PATH, 0777); 	// sd:/titlebackup
-			mkdir(dstpath, 0777);		// sd:/titlebackup/App Name - XXXX
-			free(dstpath);
-
-			dstpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(backname) + 16);
-			sprintf(dstpath, "%s/%s/%08x", BACKUP_PATH, backname, (unsigned int)tid_high);
-
-			mkdir(dstpath, 0777);		// sd:/titlebackup/App Name - XXXX/tid_high
-			free(dstpath);
-
-			dstpath = (char*)malloc(strlen(BACKUP_PATH) + strlen(backname) + 32);
-			sprintf(dstpath, "%s/%s/%08x/%08x", BACKUP_PATH, backname, (unsigned int)tid_high, (unsigned int)tid_low);
-
-			mkdir(dstpath, 0777);		// sd:/titlebackup/App Name - XXXX/tid_high/tid_low
-
-//			iprintf("dst %s\nsrc %s", dstpath, srcpath);
-//			keyWait(KEY_A);
+			{
+				//create subdirectories
+				char backupPath[sizeof(BACKUP_PATH)];
+				strcpy(backupPath, BACKUP_PATH);
+				for (char *slash = strchr(backupPath, '/'); *slash; slash = strchr(slash + 1, '/'))
+				{
+					char temp = *slash;
+					*slash = '\0';
+					mkdir(backupPath, 0777);
+					*slash = temp;
+				}
+				mkdir(backupPath, 0777); // sd:/_nds/ntm/backup
+			}
 
 			clearScreen(&bottomScreen);
 
-			if (!copyDir(srcpath, dstpath))
-				messagePrint("\x1B[31m\nBackup error.\x1B[47m");
-			else
-				messagePrint("\x1B[42m\nBackup finished.\x1B[47m");
+			char path[256], dstpath[256];
 
-			free(dstpath);
+			//tmd
+			sprintf(path, "%s/content/title.tmd", srcpath);
+			sprintf(dstpath, "%s/%s.tmd", BACKUP_PATH, backname);
+			nocashMessage(path);
+			nocashMessage(dstpath);
+			if (access(path, F_OK) == 0)
+			{
+				//get app version
+				FILE *tmd = fopen(path, "rb");
+				if (tmd)
+				{
+					u8 appVersion;
+					fseek(tmd, 0x1E7, SEEK_SET);
+					fread(&appVersion, sizeof(appVersion), 1, tmd);
+					fclose(tmd);
+
+					iprintf("%s -> \n%s...\n", path, dstpath);
+					copyFile(path, dstpath);
+
+					//app
+					sprintf(path, "%s/content/000000%02x.app", srcpath, appVersion);
+					sprintf(dstpath, "%s/%s.nds", BACKUP_PATH, backname);
+					if (access(path, F_OK) == 0)
+					{
+						iprintf("%s -> \n%s...\n", path, dstpath);
+						copyFile(path, dstpath);
+					}
+				}
+			}
+
+			//public save
+			sprintf(path, "%s/data/public.sav", srcpath);
+			sprintf(dstpath, "%s/%s.pub", BACKUP_PATH, backname);
+			if (access(path, F_OK) == 0)
+			{
+				iprintf("%s -> \n%s...\n", path, dstpath);
+				copyFile(path, dstpath);
+			}
+
+			//private save
+			sprintf(path, "%s/data/private.sav", srcpath);
+			sprintf(dstpath, "%s/%s.prv", BACKUP_PATH, backname);
+			if (access(path, F_OK) == 0)
+			{
+				iprintf("%s -> \n%s...\n", path, dstpath);
+				copyFile(path, dstpath);
+			}
+
+			//banner save
+			sprintf(path, "%s/data/banner.sav", srcpath);
+			sprintf(dstpath, "%s/%s.bnr", BACKUP_PATH, backname);
+			if (access(path, F_OK) == 0)
+			{
+				iprintf("%s -> \n%s...\n", path, dstpath);
+				copyFile(path, dstpath);
+			}
+
+			messagePrint("\x1B[42m\nBackup finished.\x1B[47m");
 		}
-
-		free(srcpath);
 	}
 
-	free(backname);
 	free(h);
 }
 

@@ -12,7 +12,6 @@ bool getGameTitlePath(char const* fpath, char* out, bool full);
 
 bool getRomLabel(tDSiHeader* h, char* out);
 bool getRomCode(tDSiHeader* h, char* out);
-bool getTitleId(tDSiHeader* h, u32* low, u32* high);
 
 void printRomInfo(char const* fpath);
 

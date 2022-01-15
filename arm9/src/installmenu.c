@@ -160,7 +160,6 @@ static void generateList(Menu* m)
 	{
 		int count = 0;
 
-		//scan /dsi/
 		while ( (ent = readdir(dir)) && !done)
 		{
 			if (ent->d_name[0] == '.')
@@ -187,14 +186,12 @@ static void generateList(Menu* m)
 			}
 			else
 			{
-				if (strstr(ent->d_name, ".nds") != NULL ||
-					strstr(ent->d_name, ".app") != NULL ||
-					strstr(ent->d_name, ".dsi") != NULL ||
-					strstr(ent->d_name, ".cia") != NULL ||
-					strstr(ent->d_name, ".NDS") != NULL ||
-					strstr(ent->d_name, ".APP") != NULL ||
-					strstr(ent->d_name, ".DSI") != NULL ||
-					strstr(ent->d_name, ".CIA") != NULL)
+				if (strcasecmp(strrchr(ent->d_name, '.'), ".nds") == 0 ||
+					strcasecmp(strrchr(ent->d_name, '.'), ".app") == 0 ||
+					strcasecmp(strrchr(ent->d_name, '.'), ".dsi") == 0 ||
+					strcasecmp(strrchr(ent->d_name, '.'), ".ids") == 0 ||
+					strcasecmp(strrchr(ent->d_name, '.'), ".srl") == 0 ||
+					strcasecmp(strrchr(ent->d_name, '.'), ".cia") == 0)
 				{
 					if (count < m->page * ITEMS_PER_PAGE)
 						count += 1;
