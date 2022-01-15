@@ -116,6 +116,9 @@ int main(int argc, char **argv)
 	keysSetRepeat(25, 5);
 	_setupScreens();
 
+	fifoSetValue32Handler(FIFO_USER_01, fifoHandlerPower, NULL);
+	fifoSetValue32Handler(FIFO_USER_03, fifoHandlerBattery, NULL);
+
 	//DSi check
 	if (!isDSiMode())
 	{
@@ -165,9 +168,6 @@ int main(int argc, char **argv)
 
 	//main menu
 	int cursor = 0;
-
-	fifoSetValue32Handler(FIFO_USER_01, fifoHandlerPower, NULL);
-	fifoSetValue32Handler(FIFO_USER_03, fifoHandlerBattery, NULL);
 
 	while (!programEnd)
 	{
