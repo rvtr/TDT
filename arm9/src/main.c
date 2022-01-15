@@ -54,7 +54,8 @@ static int _mainMenu(int cursor)
 	iprintf("\tTitle Manager for HiyaCFW\n");
 	iprintf("\nversion %s\n", VERSION);
 	iprintf("\n\n\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n");
-	iprintf("\n\t  \x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
+	iprintf("\n\t  \x1B[46mhttps://dsi.cfw.guide\x1B[47m\n");
+	iprintf("\n\n \x1B[46mgithub.com/Epicpkmn11/NTM/wiki\x1B[47m\n");
 	iprintf("\x1b[22;0HJeff - 2018-2019");
 	iprintf("\x1b[23;0HPk11 - 2022");
 
@@ -164,8 +165,7 @@ int main(int argc, char **argv)
 
 	messageBox("\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!");
 
-	messageBox("If you are following a video\nguide, please stop.\n\nVideo guides for console moddingare often outdated or straight\nup incorrect to begin with.\n\nThe recommended guide for\nmodding your DSi is:\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
-
+	messageBox("If you are following a video\nguide, please stop.\n\nVideo guides for console moddingare often outdated or straight\nup incorrect to begin with.\n\nThe recommended guide for\nmodding your DSi is:\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m\n\nFor more information on using\nNTM, see the official wiki:\n\n\x1B[46mhttps://github.com/Epicpkmn11/\n\t\t\t\t\t\t\t\tNTM/wiki\x1B[47m");
 	//main menu
 	int cursor = 0;
 
