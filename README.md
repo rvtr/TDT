@@ -21,6 +21,7 @@ This can modify your internal system NAND! There is *always* a risk of **brickin
    - `title.tmd` => `[rom name].tmd`
 - If you want your DSiWare to work without RSA patches make sure to provide a legit TMD
    - Homebrew and DSiWare without a legit TMD require Unlaunch installed with its launcher patches enabled when installed to SysNAND
+- Out of region DSiWare cannot be used from SysNAND without Unlaunch's launcher patches
 - This is only for DSi systems, not 3DS or DS
 
 ## Credits
