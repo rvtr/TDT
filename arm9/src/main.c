@@ -8,6 +8,7 @@
 
 bool programEnd = false;
 bool sdnandMode = true;
+bool unlaunchFound = false;
 bool arm7Exiting = false;
 bool charging = false;
 u8 batteryLevel = 0;
@@ -143,7 +144,6 @@ int main(int argc, char **argv)
 
 	//check for unlaunch
 	{
-		bool unlaunchFound = false;
 		FILE *file = fopen("nand:/sys/HWINFO_S.dat", "rb");
 		if (file)
 		{

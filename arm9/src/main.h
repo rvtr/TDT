@@ -7,6 +7,7 @@
 
 extern bool programEnd;
 extern bool sdnandMode;
+extern bool unlaunchFound;
 extern bool charging;
 extern u8 batteryLevel;
 

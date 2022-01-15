@@ -397,6 +397,17 @@ bool install(char* fpath, bool systemTitle)
 			goto error;
 		}
 
+		//no system titles without Unlaunch
+		if (!unlaunchFound && h->tid_high != 0x00030004)
+		{
+			iprintf("\x1B[31m");	//red
+			iprintf("Error: ");
+			iprintf("\x1B[33m");	//yellow
+			iprintf("This title cannot be\ninstalled without Unlaunch.\n");
+			iprintf("\x1B[47m");	//white
+			goto error;
+		}
+
 		//blacklisted titles
 		{
 			//tid without region
