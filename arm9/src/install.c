@@ -397,6 +397,16 @@ bool install(char* fpath, bool systemTitle)
 			goto error;
 		}
 
+		//offer to patch system titles to normal DSiWare on SysNAND
+		if(!sdnandMode && h->tid_high != 0x00030004)
+		{
+			if(choiceBox("This is a system title, would\nyou like to patch it to be a\nnormal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
+			{
+				h->tid_high = 0x00030004;
+				fixHeader = true;
+			}
+		}
+
 		//no system titles without Unlaunch
 		if (!unlaunchFound && h->tid_high != 0x00030004)
 		{
