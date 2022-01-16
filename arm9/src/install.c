@@ -400,7 +400,7 @@ bool install(char* fpath, bool systemTitle)
 		//offer to patch system titles to normal DSiWare on SysNAND
 		if(!sdnandMode && h->tid_high != 0x00030004)
 		{
-			if(choiceBox("This is a system title, would\nyou like to patch it to be a\nnormal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
+			if(choiceBox("This is set as a system title,\nwould you like to patch it to\nbe a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
 			{
 				h->tid_high = 0x00030004;
 				fixHeader = true;
