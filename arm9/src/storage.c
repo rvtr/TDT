@@ -186,8 +186,8 @@ bool padFile(char const* path, int size)
 	}
 	else
 	{
-		char zero = 0;
-		fwrite(&zero, size, 1, f);
+		for (int i = 0; i < size; i++)
+			fputc('\0', f);
 	}
 
 	fclose(f);

@@ -487,11 +487,11 @@ bool install(char* fpath, bool systemTitle)
 		swiWaitForVBlank();
 
 		u32 clusterSize = getDsiClusterSize();
-		unsigned long long fileSize = getRomSize(fpath);
-		if ((fileSize % clusterSize) != 0)
-			fileSize += clusterSize - (fileSize % clusterSize);
+		unsigned long long fileSize = getRomSize(fpath), fileSizeOnDisk = fileSize;
+		if ((fileSizeOnDisk % clusterSize) != 0)
+			fileSizeOnDisk = clusterSize - (fileSizeOnDisk % clusterSize);
 		//file + saves + TMD (rounded up to cluster size)
-		unsigned long long installSize = fileSize + _getSaveDataSize(h) + clusterSize;
+		unsigned long long installSize = fileSizeOnDisk + _getSaveDataSize(h) + clusterSize;
 		if (tmdFound) installSize += clusterSize; //ticket, rounded up to cluster size
 
 		printBytes(installSize);
@@ -661,12 +661,12 @@ bool install(char* fpath, bool systemTitle)
 
 				//pad out banner if it is the last part of the file
 				{
-					if (h->ndshdr.bannerOffset == fileSize - 0x1C00)
+					if (h->ndshdr.bannerOffset > (fileSize - 0x23C0))
 					{
 						iprintf("Padding banner...");
 						swiWaitForVBlank();
 
-						if (padFile(appPath, 0x7C0) == false)
+						if (padFile(appPath, h->ndshdr.bannerOffset + 0x23C0 - fileSize) == false)
 						{
 							iprintf("\x1B[31m");	//red
 							iprintf("Failed\n");
