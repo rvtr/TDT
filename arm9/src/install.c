@@ -438,12 +438,19 @@ bool install(char* fpath, bool systemTitle)
 					region == 0                      //if the region check failed somehow, blacklist everything
 				))
 			{
-				iprintf("\x1B[31m");	//red
-				iprintf("Error: ");
-				iprintf("\x1B[33m");	//yellow
-				iprintf("This title cannot be\ninstalled to SysNAND.\n");
-				iprintf("\x1B[47m");	//white
-				goto error;
+				//check if title exists, if it does then show any error
+				//otherwise allow reinstalling it
+				char path[PATH_MAX];
+				sprintf(path, "nand:/title/%08lx/%08lx/content/title.tmd", h->tid_high, h->tid_low);
+				if (access(path, F_OK) == 0)
+				{
+					iprintf("\x1B[31m");	//red
+					iprintf("Error: ");
+					iprintf("\x1B[33m");	//yellow
+					iprintf("This title cannot be\ninstalled to SysNAND.\n");
+					iprintf("\x1B[47m");	//white
+					goto error;
+				}
 			}
 		}
 
