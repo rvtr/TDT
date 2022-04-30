@@ -95,6 +95,25 @@ static void generateList(Menu* m)
 		"00030015"
 	};
 
+	const char* blacklist[3][6] = {
+		{ // 00030004
+			NULL //nothing blacklisted
+		},
+		{ // 00030005
+			"484e44", // DS Download Play
+			"484e45", // PictoChat
+			"484e49", // Nintendo DSi Camera
+			"484e4a", // Nintendo Zone
+			"484e4b", // Nintendo DSi Sound
+			NULL
+		},
+		{ // 00030015
+			"484e42", // System Settings
+			"484e46", // Nintendo DSi Shop
+			NULL
+		}
+	};
+
 	//Reset menu
 	clearMenu(m);
 
@@ -121,19 +140,24 @@ static void generateList(Menu* m)
 					continue;
 
 				//blacklisted titles
-				if (!sdnandMode && (
-					(i == 1 && (
-						strncmp(ent->d_name, "484e44", 6) == 0 || // DS Download Play
-						strncmp(ent->d_name, "484e45", 6) == 0 || // PictoChat
-						strncmp(ent->d_name, "484e49", 6) == 0 || // Nintendo DSi Camera
-						strncmp(ent->d_name, "484e4a", 6) == 0 || // Nintendo Zone
-						strncmp(ent->d_name, "484e4b", 6) == 0    // Nintendo DSi Sound
-					)) || (i == 2 && (
-						strncmp(ent->d_name, "484e42", 6) == 0 || // System Settings
-						strncmp(ent->d_name, "484e46", 6) == 0    // Nintendo DSi Shop
-					))))
+				if (!sdnandMode)
 				{
-					continue;
+					//if the region check somehow failed blacklist all-non DSiWare
+					if (region == 0 && i > 0) continue;
+
+					bool blacklisted = false;
+					for (int j = 0; blacklist[i][j] != NULL; j++)
+					{
+						char titleId[9];
+						sprintf(titleId, "%s%02x", blacklist[i][j], region);
+						if (strcmp(titleId, ent->d_name) == 0) 
+							blacklisted = true;
+
+						sprintf(titleId, "%s41", blacklist[i][j]); // also blacklist region 'a'
+						if (strcmp(titleId, ent->d_name) == 0) 
+							blacklisted = true;
+					}
+					if (blacklisted) continue;
 				}
 
 				if (ent->d_type == DT_DIR)

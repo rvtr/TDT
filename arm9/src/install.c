@@ -432,7 +432,11 @@ bool install(char* fpath, bool systemTitle)
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
 					tidLow == 0x484e4600    // Nintendo DSi Shop
-				))))
+				))) && (
+					(h->tid_low & 0xFF) == region || //only blacklist console region
+					(h->tid_low & 0xFF) == 'A' ||    //and 'A' (all region)
+					region == 0                      //if the region check failed somehow, blacklist everything
+				))
 			{
 				iprintf("\x1B[31m");	//red
 				iprintf("Error: ");

@@ -12,6 +12,7 @@ bool unlaunchFound = false;
 bool arm7Exiting = false;
 bool charging = false;
 u8 batteryLevel = 0;
+u8 region = 0;
 
 PrintConsole topScreen;
 PrintConsole bottomScreen;
@@ -142,7 +143,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	//check for unlaunch
+	//check for unlaunch and region
 	{
 		FILE *file = fopen("nand:/sys/HWINFO_S.dat", "rb");
 		if (file)
@@ -151,6 +152,8 @@ int main(int argc, char **argv)
 			u32 launcherTid;
 			fread(&launcherTid, sizeof(u32), 1, file);
 			fclose(file);
+
+			region = launcherTid & 0xFF;
 
 			char path[64];
 			sprintf(path, "nand:/title/00030017/%08lx/content/title.tmd", launcherTid);
