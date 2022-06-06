@@ -4,11 +4,13 @@
 #include "nand/nandio.h"
 #include "storage.h"
 #include "version.h"
+#include <dirent.h>
 #include <time.h>
 
 bool programEnd = false;
 bool sdnandMode = true;
 bool unlaunchFound = false;
+bool devkpFound = false;
 bool arm7Exiting = false;
 bool charging = false;
 u8 batteryLevel = 0;
@@ -24,6 +26,7 @@ enum {
 	MAIN_MENU_BACKUP,
 	MAIN_MENU_TEST,
 	MAIN_MENU_FIX,
+	MAIN_MENU_DATA_MANAGEMENT,
 	MAIN_MENU_EXIT
 };
 
@@ -65,15 +68,17 @@ static int _mainMenu(int cursor)
 	Menu* m = newMenu();
 	setMenuHeader(m, "MAIN MENU");
 
-	char modeStr[32];
+	char modeStr[32], datamanStr[32];
 	sprintf(modeStr, "Mode: %s", sdnandMode ? "SDNAND" : "\x1B[41mSysNAND\x1B[47m");
+	sprintf(datamanStr, "\x1B[%02omEnable Data Management", devkpFound ? 037 : 047);
 	addMenuItem(m, modeStr, NULL, 0);
 	addMenuItem(m, "Install", NULL, 0);
 	addMenuItem(m, "Titles", NULL, 0);
 	addMenuItem(m, "Restore", NULL, 0);
 	addMenuItem(m, "Test", NULL, 0);
 	addMenuItem(m, "Fix FAT copy mismatch", NULL, 0);
-	addMenuItem(m, "Exit", NULL, 0);
+	addMenuItem(m, datamanStr, NULL, 0);
+	addMenuItem(m, "\x1B[47mExit", NULL, 0);
 
 	m->cursor = cursor;
 
@@ -166,6 +171,9 @@ int main(int argc, char **argv)
 			messageBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
 	}
 
+	//check for dev.kp (Data Management visible)
+	devkpFound = (access("sd:/sys/dev.kp", F_OK) == 0);
+
 	messageBox("\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n\nIf you nave not yet done so,\nyou should make a NAND backup.");
 
 	messageBox("If you are following a video\nguide, please stop.\n\nVideo guides for console moddingare often outdated or straight\nup incorrect to begin with.\n\nThe recommended guide for\nmodding your DSi is:\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m\n\nFor more information on using\nNTM, see the official wiki:\n\n\x1B[46mhttps://github.com/Epicpkmn11/\n\t\t\t\t\t\t\t\tNTM/wiki\x1B[47m");
@@ -180,6 +188,7 @@ int main(int argc, char **argv)
 		{
 			case MAIN_MENU_MODE:
 				sdnandMode = !sdnandMode;
+				devkpFound = (access(sdnandMode ? "sd:/sys/dev.kp" : "nand:/sys/dev.kp", F_OK) == 0);
 				break;
 
 			case MAIN_MENU_INSTALL:
@@ -204,6 +213,24 @@ int main(int argc, char **argv)
 					nandio_force_fat_fix();
 					nandio_lock_writing();
 					messageBox("Mismatch in FAT copies will be\nfixed on close.\n");
+				}
+				break;
+
+			case MAIN_MENU_DATA_MANAGEMENT:
+				if (!devkpFound && (choiceBox("Make Data Management visible\nin System Settings?") == YES) && (sdnandMode || nandio_unlock_writing()))
+				{
+					//ensure sys folder exists
+					if(access(sdnandMode ? "sd:/sys" : "nand:/sys", F_OK) != 0)
+						mkdir(sdnandMode ? "sd:/sys" : "nand:/sys", 0777);
+
+					//create empty file
+					FILE *file = fopen(sdnandMode ? "sd:/sys/dev.kp" : "nand:/sys/dev.kp", "wb");
+					fclose(file);
+
+					if(!sdnandMode)
+						nandio_lock_writing();
+					devkpFound = (access(sdnandMode ? "sd:/sys/dev.kp" : "nand:/sys/dev.kp", F_OK) == 0);
+					messageBox("Data Management is now visible\nin System Settings.\n");
 				}
 				break;
 
