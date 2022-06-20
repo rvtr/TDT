@@ -117,7 +117,8 @@ static bool _checkDsiSpace(unsigned long long size, bool systemApp)
 	iprintf("Enough room on DSi?...");
 	swiWaitForVBlank();
 
-	if ((systemApp ? getDsiRealFree() : getDsiFree()) < size)
+	//ensure there's at least 1 MiB free, to leave margin for error
+	if (((systemApp ? getDsiRealFree() : getDsiFree()) < size) || (((systemApp ? getDsiRealFree() : getDsiFree()) - size) < (1 << 20)))
 	{
 		iprintf("\x1B[31m");	//red
 		iprintf("No\n");
