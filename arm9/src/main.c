@@ -11,6 +11,7 @@ bool programEnd = false;
 bool sdnandMode = true;
 bool unlaunchFound = false;
 bool devkpFound = false;
+bool launcherDSiFound = false;
 bool arm7Exiting = false;
 bool charging = false;
 u8 batteryLevel = 0;
@@ -27,6 +28,7 @@ enum {
 	MAIN_MENU_TEST,
 	MAIN_MENU_FIX,
 	MAIN_MENU_DATA_MANAGEMENT,
+	MAIN_MENU_LANGUAGE_PATCHER,
 	MAIN_MENU_EXIT
 };
 
@@ -68,9 +70,10 @@ static int _mainMenu(int cursor)
 	Menu* m = newMenu();
 	setMenuHeader(m, "MAIN MENU");
 
-	char modeStr[32], datamanStr[32];
+	char modeStr[32], datamanStr[32], launcherStr[32];
 	sprintf(modeStr, "Mode: %s", sdnandMode ? "SDNAND" : "\x1B[41mSysNAND\x1B[47m");
 	sprintf(datamanStr, "\x1B[%02omEnable Data Management", devkpFound ? 037 : 047);
+	sprintf(launcherStr, "\x1B[%02omUninstall region mod", launcherDSiFound ? 047 : 037);
 	addMenuItem(m, modeStr, NULL, 0);
 	addMenuItem(m, "Install", NULL, 0);
 	addMenuItem(m, "Titles", NULL, 0);
@@ -78,6 +81,7 @@ static int _mainMenu(int cursor)
 	addMenuItem(m, "Test", NULL, 0);
 	addMenuItem(m, "Fix FAT copy mismatch", NULL, 0);
 	addMenuItem(m, datamanStr, NULL, 0);
+	addMenuItem(m, launcherStr, NULL, 0);
 	addMenuItem(m, "\x1B[47mExit", NULL, 0);
 
 	m->cursor = cursor;
@@ -174,6 +178,9 @@ int main(int argc, char **argv)
 	//check for dev.kp (Data Management visible)
 	devkpFound = (access("sd:/sys/dev.kp", F_OK) == 0);
 
+	//check for launcher.dsi (Language patcher)
+	launcherDSiFound = (access("nand:/launcher.dsi", F_OK) == 0);
+
 	messageBox("\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n\nIf you nave not yet done so,\nyou should make a NAND backup.");
 
 	messageBox("If you are following a video\nguide, please stop.\n\nVideo guides for console moddingare often outdated or straight\nup incorrect to begin with.\n\nThe recommended guide for\nmodding your DSi is:\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m\n\nFor more information on using\nNTM, see the official wiki:\n\n\x1B[46mhttps://github.com/Epicpkmn11/\n\t\t\t\t\t\t\t\tNTM/wiki\x1B[47m");
@@ -231,6 +238,17 @@ int main(int argc, char **argv)
 						nandio_lock_writing();
 					devkpFound = (access(sdnandMode ? "sd:/sys/dev.kp" : "nand:/sys/dev.kp", F_OK) == 0);
 					messageBox("Data Management is now visible\nin System Settings.\n");
+				}
+				break;
+			case MAIN_MENU_LANGUAGE_PATCHER:
+				if (launcherDSiFound && (choiceBox("Uninstall the language patched\nDSi Menu? (launcher.dsi)") == YES) && nandio_unlock_writing())
+				{
+					//delete launcher.dsi
+					remove("nand:/launcher.dsi");
+
+					nandio_lock_writing();
+					launcherDSiFound = (access("nand:/launcher.dsi", F_OK) == 0);
+					messageBox("The language patched DSi Menu\nhas been removed.\n");
 				}
 				break;
 
