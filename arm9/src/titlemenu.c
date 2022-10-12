@@ -354,16 +354,16 @@ static void backup(Menu* m)
 				FILE *tmd = fopen(path, "rb");
 				if (tmd)
 				{
-					u8 appVersion;
-					fseek(tmd, 0x1E7, SEEK_SET);
-					fread(&appVersion, sizeof(appVersion), 1, tmd);
+					u8 appVersion[4];
+					fseek(tmd, 0x1E4, SEEK_SET);
+					fread(&appVersion, 1, 4, tmd);
 					fclose(tmd);
 
 					iprintf("%s -> \n%s...\n", path, dstpath);
 					copyFile(path, dstpath);
 
 					//app
-					sprintf(path, "%s/content/000000%02x.app", srcpath, appVersion);
+					sprintf(path, "%s/content/%02x%02x%02x%02x.app", srcpath, appVersion[0], appVersion[1], appVersion[2], appVersion[3]);
 					sprintf(dstpath, "%s/%s.nds", BACKUP_PATH, backname);
 					if (access(path, F_OK) == 0)
 					{
