@@ -10,6 +10,7 @@
 bool programEnd = false;
 bool sdnandMode = true;
 bool unlaunchFound = false;
+bool unlaunchPatches = false;
 bool devkpFound = false;
 bool launcherDSiFound = false;
 bool arm7Exiting = false;
@@ -169,10 +170,39 @@ int main(int argc, char **argv)
 			unsigned long long tmdSize = getFileSizePath(path);
 			if (tmdSize > 520)
 				unlaunchFound = true;
+
+			//check if launcher patches are enabled
+			const static u32 tidValues[][2] = {
+				// {location, value}
+				{0xE439, 0x382E3176}, // 1.8
+				{0xB07C, 0x17484E41}, // 1.9
+				{0xB099, 0x17484E41}, // 2.0 (Normal)
+				{0xB079, 0x484E1841}, // 2.0 (Patched)
+			};
+
+			FILE *tmd = fopen(path, "rb");
+			if (tmd)
+			{
+				for (int i = 0; i < sizeof(tidValues) / sizeof(tidValues[0]); i++)
+				{
+					if (fseek(file, tidValues[i][0], SEEK_SET) == 0)
+					{
+						u32 tidVal;
+						fread(&tidVal, sizeof(u32), 1, file);
+						if (tidVal == tidValues[i][1])
+						{
+							unlaunchPatches = true;
+							break;
+						}
+					}
+				}
+			}
 		}
 
 		if (!unlaunchFound)
 			messageBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
+		else if (!unlaunchPatches)
+			messageBox("Unlaunch's Launcher Patches are\nnot enabled. You will need to\nprovide TMD files or reinstall.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
 	}
 
 	//check for dev.kp (Data Management visible)

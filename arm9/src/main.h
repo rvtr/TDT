@@ -8,6 +8,7 @@
 extern bool programEnd;
 extern bool sdnandMode;
 extern bool unlaunchFound;
+extern bool unlaunchPatches;
 extern bool charging;
 extern u8 batteryLevel;
 extern u8 region;

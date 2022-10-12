@@ -493,7 +493,7 @@ bool install(char* fpath, bool systemTitle)
 			else
 				goto error;
 		}
-		else if(!sdnandMode && access(tmdPath, F_OK) != 0)
+		else if(!sdnandMode && !unlaunchPatches && access(tmdPath, F_OK) != 0)
 		{
 			if (choicePrint("TMD not found, game cannot be\nplayed without Unlaunch's\nlauncher patches.\nSee wiki for how to get a TMD.\n\nInstall anyway?") == YES)
 				tmdFound = false;
