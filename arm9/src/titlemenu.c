@@ -331,7 +331,7 @@ static void backup(Menu* m)
 				//create subdirectories
 				char backupPath[sizeof(BACKUP_PATH)];
 				strcpy(backupPath, BACKUP_PATH);
-				for (char *slash = strchr(backupPath, '/'); *slash; slash = strchr(slash + 1, '/'))
+				for (char *slash = strchr(backupPath, '/'); slash; slash = strchr(slash + 1, '/'))
 				{
 					char temp = *slash;
 					*slash = '\0';
