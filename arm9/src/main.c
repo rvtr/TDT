@@ -199,10 +199,12 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (!unlaunchFound)
+		if (!unlaunchFound) {
 			messageBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
-		else if (!unlaunchPatches)
+			return 0;
+		} else if (!unlaunchPatches) {
 			messageBox("Unlaunch's Launcher Patches are\nnot enabled. You will need to\nprovide TMD files or reinstall.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
+		}
 	}
 
 	//check for dev.kp (Data Management visible)
