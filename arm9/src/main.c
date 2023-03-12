@@ -199,10 +199,18 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (!unlaunchFound) {
-			messageBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
-			return 0;
-		} else if (!unlaunchPatches) {
+		if (!unlaunchFound)
+		{
+			if (choiceBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m\n\nFix FAT copy mismatch?") == YES && nandio_unlock_writing())
+			{
+				nandio_force_fat_fix();
+				nandio_lock_writing();
+				messageBox("Mismatch in FAT copies will be\nfixed now.\n");
+			}
+			programEnd = true;
+		}
+		else if (!unlaunchPatches)
+		{
 			messageBox("Unlaunch's Launcher Patches are\nnot enabled. You will need to\nprovide TMD files or reinstall.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
 		}
 	}
