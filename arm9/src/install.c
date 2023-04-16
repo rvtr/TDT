@@ -508,7 +508,7 @@ bool install(char* fpath, bool systemTitle)
 		u32 clusterSize = getDsiClusterSize();
 		unsigned long long fileSize = getRomSize(fpath), fileSizeOnDisk = fileSize;
 		if ((fileSizeOnDisk % clusterSize) != 0)
-			fileSizeOnDisk = clusterSize - (fileSizeOnDisk % clusterSize);
+			fileSizeOnDisk += clusterSize - (fileSizeOnDisk % clusterSize);
 		//file + saves + TMD (rounded up to cluster size)
 		unsigned long long installSize = fileSizeOnDisk + _getSaveDataSize(h) + clusterSize;
 		if (tmdFound) installSize += clusterSize; //ticket, rounded up to cluster size
