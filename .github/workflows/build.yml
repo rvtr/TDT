@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v1
+      - name: Setup environment
+        run: git config --global safe.directory '*'
       - name: Build NAND Title Manager
         run: make
       - name: Publish build to GH Actions
