@@ -88,14 +88,15 @@ static void generateList(Menu* m)
 {
 	if (!m) return;
 
-	const int NUM_OF_DIRS = 3;
+	const int NUM_OF_DIRS = 4;
 	const char* dirs[] = {
 		"00030004",
 		"00030005",
-		"00030015"
+		"00030015",
+		"00030017"
 	};
 
-	const char* blacklist[3][6] = {
+	const char* blacklist[4][6] = {
 		{ // 00030004
 			NULL //nothing blacklisted
 		},
@@ -110,6 +111,11 @@ static void generateList(Menu* m)
 		{ // 00030015
 			"484e42", // System Settings
 			"484e46", // Nintendo DSi Shop
+			"34544e", // TwlNmenu (blocking due to -2011 and brick potential)
+			NULL
+		},
+		{
+			"484e41", // Launcher
 			NULL
 		}
 	};
@@ -150,10 +156,6 @@ static void generateList(Menu* m)
 					{
 						char titleId[9];
 						sprintf(titleId, "%s%02x", blacklist[i][j], region);
-						if (strcmp(titleId, ent->d_name) == 0) 
-							blacklisted = true;
-
-						sprintf(titleId, "%s41", blacklist[i][j]); // also blacklist region 'a'
 						if (strcmp(titleId, ent->d_name) == 0) 
 							blacklisted = true;
 					}

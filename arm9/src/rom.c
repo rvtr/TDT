@@ -212,6 +212,7 @@ void printRomInfo(char const* fpath)
 			{
 				if (h->tid_high == 0x00030004 ||
 					h->tid_high == 0x00030005 ||
+					h->tid_high == 0x00030011 || // TID for software in TWL SDK
 					h->tid_high == 0x00030015 ||
 					h->tid_high == 0x00030017 ||
 					h->tid_high == 0x00030000)
