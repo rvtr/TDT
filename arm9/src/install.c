@@ -456,6 +456,7 @@ bool install(char* fpath, bool systemTitle)
 					(h->tid_low & 0xFF) == region || //only blacklist console region
 					h->tid_low == 0x484e4541 ||      //and block specifically international PictoChat 
 					h->tid_low == 0x484e4441 ||      //and Download Play for good measure
+					h->tid_low == 0x30535541 ||      //just to be safe also block sysupdaters. iirc one dos fit in NAND if you've removed some things
 					region == 0                      //if the region check failed somehow, blacklist everything
 				))
 			{
