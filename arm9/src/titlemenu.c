@@ -159,9 +159,9 @@ static void generateList(Menu* m)
 							blacklisted = true;
 
 						// also blacklist specific all-region titles
-						if (strcmp("484e4441", ent->d_name) == 0 ||  // Download Play
-							  ("484e4541", ent->d_name) == 0 ||  // PictoChat
-							  ("34544e41", ent->d_name) == 0)    // TwlNmenu
+						if ((strcmp("484e4441", ent->d_name) == 0) ||  // Download Play
+							(strcmp("484e4541", ent->d_name) == 0) ||  // PictoChat
+							(strcmp("34544e41", ent->d_name) == 0))    // TwlNmenu
 							blacklisted = true;
 					}
 					if (blacklisted) continue;

@@ -414,7 +414,7 @@ bool install(char* fpath, bool systemTitle)
 		}
 
 		//offer to patch system titles to normal DSiWare on SysNAND
-		if(!sdnandMode && h->tid_high != 0x00030004 || h->tid_high != 0x00030017) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
+		if((!sdnandMode && h->tid_high != 0x00030004) && (!sdnandMode && h->tid_high != 0x00030017)) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
 		{
 			if(choiceBox("This is set as a system/dev\ntitle, would you like to patch\nit to be a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
 			{
@@ -457,7 +457,10 @@ bool install(char* fpath, bool systemTitle)
 					tidLow == 0x484e4b00    // Nintendo DSi Sound
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
-					tidLow == 0x484e4600    // Nintendo DSi Shop
+					tidLow == 0x484e4600 || // Nintendo DSi Shop
+					tidLow == 0x30535500 || // Twl SystemUpdater
+					tidLow == 0x34544e00 || // TwlNmenu
+					tidLow == 0x54574c00    // TWL EVA
 				)) || (h->tid_high == 0x00030017 && (
 					tidLow == 0x484e4100    // Launcher
 				))) && (
