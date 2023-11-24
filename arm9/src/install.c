@@ -462,7 +462,7 @@ bool install(char* fpath, bool systemTitle)
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
 					tidLow == 0x484e4600 || // Nintendo DSi Shop
-					tidLow == 0x34544e00 || // TwlNmenu
+					tidLow == 0x34544e00    // TwlNmenu
 				)) || (h->tid_high == 0x00030017 && (
 					tidLow == 0x484e4100    // Launcher
 				))) && (
