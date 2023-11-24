@@ -414,7 +414,7 @@ bool install(char* fpath, bool systemTitle)
 		}
 
 		//offer to patch system titles to normal DSiWare on SysNAND
-		if(!sdnandMode && h->tid_high != 0x00030004 || != 0x00030017) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
+		if(!sdnandMode && h->tid_high != 0x00030004 || h->tid_high != 0x00030017) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
 		{
 			if(choiceBox("This is set as a system/dev\ntitle, would you like to patch\nit to be a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
 			{
