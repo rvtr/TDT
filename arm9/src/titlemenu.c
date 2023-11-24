@@ -111,10 +111,9 @@ static void generateList(Menu* m)
 		{ // 00030015
 			"484e42", // System Settings
 			"484e46", // Nintendo DSi Shop
-			"34544e", // TwlNmenu (blocking due to -2011 and brick potential)
 			NULL
 		},
-		{
+		{ // 00030017
 			"484e41", // Launcher
 			NULL
 		}
@@ -157,6 +156,12 @@ static void generateList(Menu* m)
 						char titleId[9];
 						sprintf(titleId, "%s%02x", blacklist[i][j], region);
 						if (strcmp(titleId, ent->d_name) == 0) 
+							blacklisted = true;
+
+						// also blacklist specific all-region titles
+						if (strcmp("484e4441", ent->d_name) == 0 ||  // Download Play
+							  ("484e4541", ent->d_name) == 0 ||  // PictoChat
+							  ("34544e41", ent->d_name) == 0)    // TwlNmenu
 							blacklisted = true;
 					}
 					if (blacklisted) continue;

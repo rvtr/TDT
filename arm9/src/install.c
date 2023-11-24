@@ -414,11 +414,21 @@ bool install(char* fpath, bool systemTitle)
 		}
 
 		//offer to patch system titles to normal DSiWare on SysNAND
-		if(!sdnandMode && h->tid_high != 0x00030004)
+		if(!sdnandMode && h->tid_high != 0x00030004 || != 0x00030017) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
 		{
 			if(choiceBox("This is set as a system/dev\ntitle, would you like to patch\nit to be a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
 			{
 				h->tid_high = 0x00030004;
+				fixHeader = true;
+			}
+		}
+
+		//offer to patch home menus to be system titles on SysNAND
+		if(!sdnandMode && h->tid_high == 0x00030017)
+		{
+			if(choiceBox("This title is a home menu.\nWould you like to patch it to bea system title?\n\nThis is safer and prevents your\nhome menu from being hidden.") == YES)
+			{
+				h->tid_high = 0x00030015;
 				fixHeader = true;
 			}
 		}
@@ -445,18 +455,18 @@ bool install(char* fpath, bool systemTitle)
 					tidLow == 0x484e4900 || // Nintendo DSi Camera
 					tidLow == 0x484e4a00 || // Nintendo Zone
 					tidLow == 0x484e4b00    // Nintendo DSi Sound
-				)) || (h->tid_high == 0x00030011 && (
-					tidLow == 0x34544e00    // TwlNmenu (blocking due to -2011 and brick potential)
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
 					tidLow == 0x484e4600    // Nintendo DSi Shop
 				)) || (h->tid_high == 0x00030017 && (
 					tidLow == 0x484e4100    // Launcher
 				))) && (
-					(h->tid_low & 0xFF) == region || //only blacklist console region
-					h->tid_low == 0x484e4541 ||      //and block specifically international PictoChat 
-					h->tid_low == 0x484e4441 ||      //and Download Play for good measure
-					h->tid_low == 0x30535541 ||      //just to be safe also block sysupdaters. iirc one dos fit in NAND if you've removed some things
+					(h->tid_low & 0xFF) == region || // Only blacklist console region, or the following programs that have all-region codes:
+					h->tid_low == 0x484e4541 ||      // PictoChat 
+					h->tid_low == 0x484e4441 ||      // Download Play
+					h->tid_low == 0x30535541 ||      // Twl SystemUpdater (iirc one version fits in NAND)
+					h->tid_low == 0x34544e41 ||      // TwlNmenu (blocking due to potential to uninstall system titles)
+					h->tid_low == 0x54574c41 ||      // TWL EVA
 					region == 0                      //if the region check failed somehow, blacklist everything
 				))
 			{
