@@ -88,14 +88,15 @@ static void generateList(Menu* m)
 {
 	if (!m) return;
 
-	const int NUM_OF_DIRS = 3;
+	const int NUM_OF_DIRS = 4;
 	const char* dirs[] = {
 		"00030004",
 		"00030005",
-		"00030015"
+		"00030015",
+		"00030017"
 	};
 
-	const char* blacklist[3][6] = {
+	const char* blacklist[4][6] = {
 		{ // 00030004
 			NULL //nothing blacklisted
 		},
@@ -110,6 +111,10 @@ static void generateList(Menu* m)
 		{ // 00030015
 			"484e42", // System Settings
 			"484e46", // Nintendo DSi Shop
+			NULL
+		},
+		{ // 00030017
+			"484e41", // Launcher
 			NULL
 		}
 	};
@@ -153,8 +158,10 @@ static void generateList(Menu* m)
 						if (strcmp(titleId, ent->d_name) == 0) 
 							blacklisted = true;
 
-						sprintf(titleId, "%s41", blacklist[i][j]); // also blacklist region 'a'
-						if (strcmp(titleId, ent->d_name) == 0) 
+						// also blacklist specific all-region titles
+						if ((strcmp("484e4441", ent->d_name) == 0) ||  // Download Play
+							(strcmp("484e4541", ent->d_name) == 0) ||  // PictoChat
+							(strcmp("34544e41", ent->d_name) == 0))    // TwlNmenu
 							blacklisted = true;
 					}
 					if (blacklisted) continue;

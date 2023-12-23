@@ -436,11 +436,12 @@ int getMenuSlotsFree()
 {
 	//Get number of open menu slots by subtracting the number of directories in the title folders
 	//Find a better way to do this
-	const int NUM_OF_DIRS = 3;
+	const int NUM_OF_DIRS = 4;
 	const char* dirs[] = {
 		"00030004",
 		"00030005",
-		"00030015"
+		"00030015",
+		"00030017"
 	};
 
 	int freeSlots = getMenuSlots();

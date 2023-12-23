@@ -384,9 +384,11 @@ bool install(char* fpath, bool systemTitle)
 			fixHeader = true;
 
 		//title id must be one of these
-		if (h->tid_high == 0x00030004 ||
-			h->tid_high == 0x00030005 ||
-			h->tid_high == 0x00030015)
+		if (h->tid_high == 0x00030004 || // DSiWare
+			h->tid_high == 0x00030005 || // "unimportant" system titles
+			h->tid_high == 0x00030011 || // SRLs in the TWL SDK
+			h->tid_high == 0x00030015 || // system titles
+			h->tid_high == 0x00030017)   // Launcher
 		{}
 		else
 		{
@@ -398,12 +400,35 @@ bool install(char* fpath, bool systemTitle)
 			goto error;
 		}
 
-		//offer to patch system titles to normal DSiWare on SysNAND
-		if(!sdnandMode && h->tid_high != 0x00030004)
+		//patch dev titles to system titles on SysNAND.
+		//
+		//software released through the TWL SDK usually comes as a TAD and an SRL
+		//things like NandFiler have a TAD with a TID of 0x00030015 and an SRL with 0x00030011
+		//the TAD is the installable version, so I'm assuming that 0x00030015 is what the console wants to see on NAND
+		//this changes the SRL TID accordingly
+		//not entirely sure why there's even any difference. I think the installed TAD and SRL the same as each other (minus the TID)
+		if(!sdnandMode && h->tid_high == 0x00030011)
 		{
-			if(choiceBox("This is set as a system title,\nwould you like to patch it to\nbe a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
+			h->tid_high = 0x00030015;
+			fixHeader = true;
+		}
+
+		//offer to patch system titles to normal DSiWare on SysNAND
+		if(!sdnandMode && h->tid_high != 0x00030004 && h->tid_high != 0x00030017) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
+		{
+			if(choiceBox("This is set as a system/dev\ntitle, would you like to patch\nit to be a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
 			{
 				h->tid_high = 0x00030004;
+				fixHeader = true;
+			}
+		}
+
+		//offer to patch home menus to be system titles on SysNAND
+		if(!sdnandMode && h->tid_high == 0x00030017)
+		{
+			if(choiceBox("This title is a home menu.\nWould you like to patch it to bea system title?\n\nThis is safer and prevents your\nhome menu from being hidden.") == YES)
+			{
+				h->tid_high = 0x00030015;
 				fixHeader = true;
 			}
 		}
@@ -430,12 +455,23 @@ bool install(char* fpath, bool systemTitle)
 					tidLow == 0x484e4900 || // Nintendo DSi Camera
 					tidLow == 0x484e4a00 || // Nintendo Zone
 					tidLow == 0x484e4b00    // Nintendo DSi Sound
+				)) || (h->tid_high == 0x00030011 && (
+					tidLow == 0x30535500 || // Twl SystemUpdater
+					tidLow == 0x34544e00 || // TwlNmenu
+					tidLow == 0x54574c00    // TWL EVA
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
-					tidLow == 0x484e4600    // Nintendo DSi Shop
+					tidLow == 0x484e4600 || // Nintendo DSi Shop
+					tidLow == 0x34544e00    // TwlNmenu
+				)) || (h->tid_high == 0x00030017 && (
+					tidLow == 0x484e4100    // Launcher
 				))) && (
-					(h->tid_low & 0xFF) == region || //only blacklist console region
-					(h->tid_low & 0xFF) == 'A' ||    //and 'A' (all region)
+					(h->tid_low & 0xFF) == region || // Only blacklist console region, or the following programs that have all-region codes:
+					h->tid_low == 0x484e4541 ||      // PictoChat 
+					h->tid_low == 0x484e4441 ||      // Download Play
+					h->tid_low == 0x30535541 ||      // Twl SystemUpdater (iirc one version fits in NAND)
+					h->tid_low == 0x34544e41 ||      // TwlNmenu (blocking due to potential to uninstall system titles)
+					h->tid_low == 0x54574c41 ||      // TWL EVA
 					region == 0                      //if the region check failed somehow, blacklist everything
 				))
 			{
