@@ -30,3 +30,4 @@ This can modify your internal system NAND! There is *always* a risk of **brickin
 - [Martin Korth (nocash)](https://problemkaputt.de): [GBATEK](https://problemkaputt.de/gbatek.htm)
 - [JeffRuLz](https://github.com/JeffRuLz): [TMFH](https://github.com/JeffRuLz/TMFH) (what this is a fork of)
 - [DesperateProgrammer](https://github.com/DesperateProgrammer): [DSi Language Patcher](https://github.com/DesperateProgrammer/DSiLanguagePacher) (working NAND writing code)
+- [rvtr](https://github.com/rvtr): Adding support for installing dev titles
