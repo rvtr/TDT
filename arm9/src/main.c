@@ -65,7 +65,7 @@ static int _mainMenu(int cursor)
 	iprintf("\n\t  \x1B[46mhttps://dsi.cfw.guide\x1B[47m\n");
 	iprintf("\n\n \x1B[46mgithub.com/Epicpkmn11/NTM/wiki\x1B[47m\n");
 	iprintf("\x1b[22;0HJeff - 2018-2019");
-	iprintf("\x1b[23;0HPk11 - 2022");
+	iprintf("\x1b[23;0HPk11 - 2022-2023");
 
 	//menu
 	Menu* m = newMenu();
