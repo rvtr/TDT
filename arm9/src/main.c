@@ -201,13 +201,7 @@ int main(int argc, char **argv)
 
 		if (!unlaunchFound)
 		{
-			if (choiceBox("Unlaunch not found, please\ninstall it.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m\n\nFix FAT copy mismatch?") == YES && nandio_unlock_writing())
-			{
-				nandio_force_fat_fix();
-				nandio_lock_writing();
-				messageBox("Mismatch in FAT copies will be\nfixed now.\n");
-			}
-			programEnd = true;
+			messageBox("Unlaunch not found. TMD files\nwill be required and there\nis a greater risk something\ncould go wrong.\n\nSee \x1B[46mhttps://dsi.cfw.guide/\x1B[47m to\ninstall.");
 		}
 		else if (!unlaunchPatches)
 		{
