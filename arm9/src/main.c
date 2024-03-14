@@ -168,8 +168,10 @@ int main(int argc, char **argv)
 			char path[64];
 			sprintf(path, "nand:/title/00030017/%08lx/content/title.tmd", launcherTid);
 			unsigned long long tmdSize = getFileSizePath(path);
-			if (tmdSize > 520)
-				unlaunchFound = true;
+			//if (tmdSize > 520)
+			//	unlaunchFound = true;
+			unlaunchFound = true;
+			// unlaunch is always true just for testing.
 
 			//check if launcher patches are enabled
 			const static u32 tidValues[][2] = {
