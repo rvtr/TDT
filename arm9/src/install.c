@@ -8,6 +8,7 @@
 #include "nand/ticket0.h"
 #include "rom.h"
 #include "storage.h"
+#include "tad.h"
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -383,6 +384,7 @@ bool install(char* fpath, bool systemTitle)
 		if (_patchGameCode(h))
 			fixHeader = true;
 
+		result = decryptTad(fpath);
 		//title id must be one of these
 		if (h->tid_high == 0x00030004 || // DSiWare
 			h->tid_high == 0x00030005 || // "unimportant" system titles
@@ -692,10 +694,13 @@ bool install(char* fpath, bool systemTitle)
 				{
 					int result = 0;
 
-					if (!romIsCia(fpath))
-						result = copyFile(fpath, appPath);
-					else
+					if (romIsCia(fpath)) {
 						result = copyFilePart(fpath, 0x3900, fileSize, appPath);
+					} else if (romIsTad(fpath)) {
+						result = decryptTad(fpath);
+					} else {
+						result = copyFile(fpath, appPath);
+					}
 
 					if (result != 0)
 					{

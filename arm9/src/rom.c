@@ -286,6 +286,12 @@ bool romIsCia(char const* fpath)
 	return (strstr(fpath, ".cia") != NULL || strstr(fpath, ".CIA") != NULL);
 }
 
+bool romIsTad(char const* fpath)
+{
+	if (!fpath) return false;
+	return (strstr(fpath, ".tad") != NULL || strstr(fpath, ".TAD") != NULL);
+}
+
 bool isDsiHeader(tDSiHeader* h)
 {
 	if (!h) return false;

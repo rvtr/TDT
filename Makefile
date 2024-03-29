@@ -16,8 +16,8 @@ NITRO_FILES	:=
 GAME_TITLE		:=	NAND Title Manager
 GAME_SUBTITLE1	:=	JeffRuLz, Pk11
 
-GAME_CODE		:= HTMA
-GAME_LABEL		:= NANDTM
+GAME_CODE		:= HTNA
+GAME_LABEL		:= NANDTM_TAD
 
 include $(DEVKITARM)/ds_rules
 
@@ -49,7 +49,7 @@ checkarm9:
 #---------------------------------------------------------------------------------
 $(TARGET).dsi	: $(NITRO_FILES) arm7/$(TARGET).elf arm9/$(TARGET).elf
 	ndstool	-c $(TARGET).dsi -7 arm7/$(TARGET).elf -9 arm9/$(TARGET).elf \
-			-u "00030004" \
+			-u "00030015" \
 			-g "$(GAME_CODE)" "00" "$(GAME_LABEL)" \
 			-b $(GAME_ICON) "$(GAME_TITLE);$(GAME_SUBTITLE1)" \
 			$(_ADDFILES)

@@ -191,6 +191,7 @@ static void generateList(Menu* m)
 					strcasecmp(strrchr(ent->d_name, '.'), ".dsi") == 0 ||
 					strcasecmp(strrchr(ent->d_name, '.'), ".ids") == 0 ||
 					strcasecmp(strrchr(ent->d_name, '.'), ".srl") == 0 ||
+					strcasecmp(strrchr(ent->d_name, '.'), ".tad") == 0 ||
 					strcasecmp(strrchr(ent->d_name, '.'), ".cia") == 0)
 				{
 					if (count < m->page * ITEMS_PER_PAGE)
