@@ -76,22 +76,22 @@ uint32_t round_up( const u32 v, const u32 align )
     https://problemkaputt.de/gbatek.htm#dscartridgeheader
     https://gist.github.com/rvtr/f1069530129b7a57967e3fc4b30866b4#file-decrypt_tad-py-L84
     */
-void decrypt_title_key(const unsigned char* key, unsigned char* iv, const unsigned char* encryptedData, size_t dataSize, unsigned char* decryptedData) {
+void decrypt_title_key(const unsigned char* key, unsigned char* iv, const unsigned char* encryptedData, size_t dataSize, size_t keySize, unsigned char* decryptedData) {
     aes_context ctx;
     unsigned char decryptedBlock[16];
     /* ============================================= */
     iprintf("  Dev common key...\n");
-    for (int i = 0; i < sizeof(key); i++) {
+    for (int i = 0; i < keySize; i++) {
         iprintf("%02X", key[i]);
     }
     iprintf("\n");
     iprintf("  Title key IV...\n");
-    for (int i = 0; i < sizeof(iv); i++) {
+    for (int i = 0; i < 16; i++) {
         iprintf("%02X", iv[i]);
     }
     iprintf("\n");
     iprintf("  Enc title key...\n");
-    for (int i = 0; i < sizeof(encryptedData); i++) {
+    for (int i = 0; i < dataSize; i++) {
         iprintf("%02X", encryptedData[i]);
     }
     iprintf("\n");
@@ -100,10 +100,59 @@ void decrypt_title_key(const unsigned char* key, unsigned char* iv, const unsign
     iprintf("\n");
     /* ============================================= */
     aes_setkey_dec(&ctx, key, 256);
-    aes_crypt_cbc(&ctx, AES_DECRYPT, dataSize, iv, encryptedData, decryptedBlock);
+    aes_crypt_cbc(&ctx, AES_DECRYPT, 16, iv, encryptedData, decryptedBlock);
 
     memcpy(decryptedData, decryptedBlock, dataSize);
+    printf("  Title key decrypted!\n");
+    for (int i = 0; i < sizeof(decryptedBlock); i++) {
+        printf("%02X", decryptedBlock[i]);
+    }
+    printf("\n");
 }
+
+int testroutine() {
+    const unsigned char iv[16] = {
+        0x00, 0x03, 0x00, 0x17, 0x48, 0x4E, 0x41, 0x41,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    const unsigned char key[16] = {
+        0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
+        0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA
+    };
+
+    const unsigned char encryptedData[16] = {
+        0x9D, 0x89, 0x45, 0xB6, 0x12, 0xE9, 0xC1, 0x90,
+        0x48, 0x7C, 0x7A, 0x52, 0xED, 0x83, 0xED, 0xEF
+    };
+
+    unsigned char decryptedData[16];
+
+    aes_context ctx;
+    unsigned char decryptedBlock[16];
+
+    aes_setkey_dec(&ctx, key, 128);
+    aes_crypt_cbc(&ctx, AES_DECRYPT, sizeof(encryptedData), iv, encryptedData, decryptedBlock);
+
+    memcpy(decryptedData, decryptedBlock, sizeof(encryptedData));
+
+    printf("Decrypted Data: ");
+    for (int i = 0; i < sizeof(decryptedData); i++) {
+        printf("%02X", decryptedData[i]);
+    }
+    printf("\n");
+    printf("Decrypted Data: ");
+    for (int i = 0; i < sizeof(decryptedBlock); i++) {
+        printf("%02X", decryptedBlock[i]);
+    }
+    printf("\n");
+    return 0;
+}
+
+
+
+
+
 
 int decryptTad(char const* src)
 {
@@ -249,7 +298,7 @@ int decryptTad(char const* src)
     FILE *ticket = fopen("sd:/_nds/tadtests/ticket.bin", "rb");
     unsigned char title_key_enc[16];
     fseek(ticket, 447, SEEK_SET);
-    fread(title_key_enc, 1, 8, ticket);
+    fread(title_key_enc, 1, 16, ticket);
     iprintf("  Title key found!\n");
     for (int i = 0; i < 16; i++) {
         iprintf("%02X", title_key_enc[i]);
@@ -277,13 +326,15 @@ int decryptTad(char const* src)
     printf("\n");
     /* ============================================= */
     unsigned char title_key_dec[16];
-    decrypt_title_key(devKey, title_key_iv, title_key_enc, sizeof(title_key_enc), title_key_dec);
+
+    decrypt_title_key(devKey, title_key_iv, title_key_enc, sizeof(title_key_enc), sizeof(devKey), title_key_dec);
     printf("  Title key decrypted!\n");
     for (int i = 0; i < sizeof(title_key_dec); i++) {
         printf("%02X", title_key_dec[i]);
     }
     printf("\n");
 
+    testroutine();
 	//return copyFilePart(src, 0, size, dst);
 	return 0; 
 
