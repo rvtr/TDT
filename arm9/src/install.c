@@ -352,7 +352,7 @@ static void _createTicket(tDSiHeader *h, char* ticketPath)
 	}
 }
 
-bool install(char* fpath, bool systemTitle)
+bool install(char* tadPath, bool systemTitle)
 {
 	bool result = false;
 
@@ -365,6 +365,7 @@ bool install(char* fpath, bool systemTitle)
 
 	//start installation
 	clearScreen(&bottomScreen);
+	char* fpath = decryptTad(tadPath);
 
 	tDSiHeader* h = getRomHeader(fpath);
 
@@ -694,13 +695,7 @@ bool install(char* fpath, bool systemTitle)
 				{
 					int result = 0;
 
-					if (romIsCia(fpath)) {
-						result = copyFilePart(fpath, 0x3900, fileSize, appPath);
-					} else if (romIsTad(fpath)) {
-						result = decryptTad(fpath);
-					} else {
-						result = copyFile(fpath, appPath);
-					}
+					result = copyFile(fpath, appPath);
 
 					if (result != 0)
 					{

@@ -186,13 +186,7 @@ static void generateList(Menu* m)
 			}
 			else
 			{
-				if (strcasecmp(strrchr(ent->d_name, '.'), ".nds") == 0 ||
-					strcasecmp(strrchr(ent->d_name, '.'), ".app") == 0 ||
-					strcasecmp(strrchr(ent->d_name, '.'), ".dsi") == 0 ||
-					strcasecmp(strrchr(ent->d_name, '.'), ".ids") == 0 ||
-					strcasecmp(strrchr(ent->d_name, '.'), ".srl") == 0 ||
-					strcasecmp(strrchr(ent->d_name, '.'), ".tad") == 0 ||
-					strcasecmp(strrchr(ent->d_name, '.'), ".cia") == 0)
+				if (strcasecmp(strrchr(ent->d_name, '.'), ".tad") == 0)
 				{
 					if (count < m->page * ITEMS_PER_PAGE)
 						count += 1;
@@ -238,7 +232,7 @@ static void printItem(Menu* m)
 	if (m->items[m->cursor].directory)
 		clearScreen(&topScreen);
 	else
-		printRomInfo(m->items[m->cursor].value);
+		printTadInfo(m->items[m->cursor].value);
 }
 
 static int subMenu()

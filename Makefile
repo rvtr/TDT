@@ -13,11 +13,11 @@ export TOPDIR	:=	$(CURDIR)
 NITRO_FILES	:=
 
 # These set the information text in the nds file
-GAME_TITLE		:=	NAND Title Manager
-GAME_SUBTITLE1	:=	JeffRuLz, Pk11
+GAME_TITLE		:=	TAD Delivery Tool
+GAME_SUBTITLE1	:=	JeffRuLz, Pk11, rmc
 
-GAME_CODE		:= HTNA
-GAME_LABEL		:= NANDTM_TAD
+GAME_CODE		:= 4TDA
+GAME_LABEL		:= TAD_DELIVERY
 
 include $(DEVKITARM)/ds_rules
 
