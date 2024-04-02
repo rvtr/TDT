@@ -1,3 +1,10 @@
+/*
+    A lot of this is heavily "inspired" by remaketad.pl in TwlIPL (/tools/bin/remaketad.pl)
+    That script was made to decrypt + unpack a dev TAD and and rebuild for SystemUpdaters.
+    
+    https://github.com/rvtr/TwlIPL/blob/trunk/tools/bin/remaketad.pl
+*/
+
 #include "tad.h"
 #include "storage.h"
 #include "nand/twltool/dsi.h"
@@ -22,9 +29,18 @@
     If for whatever reason you want to make TADs, see here:
     https://randommeaninglesscharacters.com/dsidev/man/maketad.html
 */
-unsigned char devKey[] = {0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29, 0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA};
-unsigned char prodKey[] = {0xAF, 0x1B, 0xF5, 0x16, 0xA8, 0x07, 0xD2, 0x1A, 0xEA, 0x45, 0x98, 0x4F, 0x04, 0x74, 0x28, 0x61};
-unsigned char debuggerKey[] = {0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A, 0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3};
+const unsigned char devKey[] = {
+    0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
+    0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA
+};
+const unsigned char prodKey[] = {
+    0xAF, 0x1B, 0xF5, 0x16, 0xA8, 0x07, 0xD2, 0x1A,
+    0xEA, 0x45, 0x98, 0x4F, 0x04, 0x74, 0x28, 0x61
+};
+const unsigned char debuggerKey[] = {
+    0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A,
+    0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3
+};
 typedef struct {
     uint32_t hdrSize;
     uint16_t tadType;
@@ -61,98 +77,11 @@ uint32_t round_up( const u32 v, const u32 align )
     return r;
 }
 
-    /*
-    This is SRL decryption. Again, just like WADs:
-    
-        Common key + title key IV to decrypt title key, title key + content IV to decrypt content
-
-    We have to try each possible common key until we find one that works. I don't know a better way to do this
-    (nothing in the TAD would specify the key needed) so we'll try keys in the order of which ones are more common:
-
-        DEV --> DEBUGGER --> PROD
-
-    We check for only zerobytes at 0x15-1B to see if the SRL is decrypted properly. (should always be zerobytes)
-    
-    https://problemkaputt.de/gbatek.htm#dscartridgeheader
-    https://gist.github.com/rvtr/f1069530129b7a57967e3fc4b30866b4#file-decrypt_tad-py-L84
-    */
-void decrypt_title_key(const unsigned char* key, unsigned char* iv, const unsigned char* encryptedData, size_t dataSize, size_t keySize, unsigned char* decryptedData) {
+void decrypt_cbc(const unsigned char* key, const unsigned char* iv, const unsigned char* encryptedData, size_t dataSize, size_t keySize, unsigned char* decryptedData) {
     aes_context ctx;
-    unsigned char decryptedBlock[16];
-    /* ============================================= */
-    iprintf("  Dev common key...\n");
-    for (int i = 0; i < keySize; i++) {
-        iprintf("%02X", key[i]);
-    }
-    iprintf("\n");
-    iprintf("  Title key IV...\n");
-    for (int i = 0; i < 16; i++) {
-        iprintf("%02X", iv[i]);
-    }
-    iprintf("\n");
-    iprintf("  Enc title key...\n");
-    for (int i = 0; i < dataSize; i++) {
-        iprintf("%02X", encryptedData[i]);
-    }
-    iprintf("\n");
-    iprintf("  Title key size...\n");
-    iprintf("%u", dataSize);
-    iprintf("\n");
-    /* ============================================= */
-    aes_setkey_dec(&ctx, key, 256);
-    aes_crypt_cbc(&ctx, AES_DECRYPT, 16, iv, encryptedData, decryptedBlock);
-
-    memcpy(decryptedData, decryptedBlock, dataSize);
-    printf("  Title key decrypted!\n");
-    for (int i = 0; i < sizeof(decryptedBlock); i++) {
-        printf("%02X", decryptedBlock[i]);
-    }
-    printf("\n");
-}
-
-int testroutine() {
-    const unsigned char iv[16] = {
-        0x00, 0x03, 0x00, 0x17, 0x48, 0x4E, 0x41, 0x41,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    };
-
-    const unsigned char key[16] = {
-        0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
-        0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA
-    };
-
-    const unsigned char encryptedData[16] = {
-        0x9D, 0x89, 0x45, 0xB6, 0x12, 0xE9, 0xC1, 0x90,
-        0x48, 0x7C, 0x7A, 0x52, 0xED, 0x83, 0xED, 0xEF
-    };
-
-    unsigned char decryptedData[16];
-
-    aes_context ctx;
-    unsigned char decryptedBlock[16];
-
     aes_setkey_dec(&ctx, key, 128);
-    aes_crypt_cbc(&ctx, AES_DECRYPT, sizeof(encryptedData), iv, encryptedData, decryptedBlock);
-
-    memcpy(decryptedData, decryptedBlock, sizeof(encryptedData));
-
-    printf("Decrypted Data: ");
-    for (int i = 0; i < sizeof(decryptedData); i++) {
-        printf("%02X", decryptedData[i]);
-    }
-    printf("\n");
-    printf("Decrypted Data: ");
-    for (int i = 0; i < sizeof(decryptedBlock); i++) {
-        printf("%02X", decryptedBlock[i]);
-    }
-    printf("\n");
-    return 0;
+    aes_crypt_cbc(&ctx, AES_DECRYPT, dataSize, iv, encryptedData, decryptedData);
 }
-
-
-
-
-
 
 int decryptTad(char const* src)
 {
@@ -164,12 +93,7 @@ int decryptTad(char const* src)
         return 1;
     }
 
-    mkdir("sd:/_nds/tadtests", 0777);
-
-    // A lot of this is heavily "inspired" by remaketad.pl in TwlIPL (/tools/bin/remaketad.pl)
-    // That script was made to decrypt + unpack a dev TAD and and rebuild for SystemUpdaters.
-    //
-    // https://github.com/rvtr/TwlIPL/blob/trunk/tools/bin/remaketad.pl
+    mkdir("sd:/_nds/tadtests/tmp", 0777);
 
     /*
     Please excuse my terrible copy paste coding. I do not know C and I'm translating from other languages
@@ -201,6 +125,7 @@ int decryptTad(char const* src)
     There's literally a commit replacing every instance of WAD with TAD in TwlIPL...
     https://github.com/rvtr/TwlIPL/commit/baca65d35d5d62d815c88e6374b895d5b0755277
     */
+
     Header header;
     fread(&header, sizeof(Header), 1, file);
     iprintf("Parsing TAD header:\n");
@@ -236,6 +161,7 @@ int decryptTad(char const* src)
     iprintf("  srlOffset:    %lu\n", tad.srlOffset);
     iprintf("  metaSize:     %lu\n", swap_endian_u32(header.metaSize));
     iprintf("  metaOffset:   %lu\n", tad.metaOffset);
+
     /*
     Copy the contents of the TAD to the SD card.
 
@@ -244,16 +170,12 @@ int decryptTad(char const* src)
     We can skip the cert since that already exists in NAND, and using the TAD's cert could introduce problems like
     trying to sign files for dev on a prod console.
     */
-    iprintf("\n--------------------------------\nCopying output files:\n");
-    // ChatGPT ahh code
-    // Also more copy pasting because I am a silly idiot!
-    iprintf("  Copying TMD...\n"); 
-    FILE *tmdFile = fopen("sd:/_nds/tadtests/tmd.bin", "wb");
-    if (tmdFile == NULL) {
-        iprintf("ERROR: fopen()\n");
-    }
-    fseek(file, tad.tmdOffset, SEEK_SET);
 
+    iprintf("\n--------------------------------\nCopying output files:\n");
+    // Sorry for copy pasting, I'll make this a routine later
+    iprintf("  Copying TMD...\n"); 
+    FILE *tmdFile = fopen("sd:/_nds/tadtests/tmp/tmd.srl", "wb");
+    fseek(file, tad.tmdOffset, SEEK_SET);
     for (int i = 0; i < swap_endian_u32(header.tmdSize); i++) {
         char ch = fgetc(file);
         fputc(ch, tmdFile);
@@ -261,31 +183,22 @@ int decryptTad(char const* src)
     fclose(tmdFile);
 
     iprintf("  Copying ticket...\n");
-    FILE *ticketFile = fopen("sd:/_nds/tadtests/ticket.bin", "wb");
-    if (ticketFile == NULL) {
-        iprintf("ERROR: fopen()\n");
-    }
+    FILE *ticketFile = fopen("sd:/_nds/tadtests/tmp/ticket.srl", "wb");
     fseek(file, tad.ticketOffset, SEEK_SET);
-
     for (int i = 0; i < swap_endian_u32(header.ticketSize); i++) {
         char ch = fgetc(file);
         fputc(ch, ticketFile);
     }
     fclose(ticketFile);
-    /*
+    
     iprintf("  Copying SRL...\n"); 
-    FILE *srlFile = fopen("sd:/_nds/tadtests/srl_enc.bin", "wb");
-    if (srlFile == NULL) {
-        iprintf("ERROR: fopen()\n");
-    }
+    FILE *srlFile = fopen("sd:/_nds/tadtests/tmp/srl_enc.srl", "wb");
     fseek(file, tad.srlOffset, SEEK_SET);
-
     for (int i = 0; i < swap_endian_u32(header.srlSize); i++) {
         char ch = fgetc(file);
         fputc(ch, srlFile);
     }
     fclose(srlFile);
-    */
     fclose(file);
 
     iprintf("\n--------------------------------\n");
@@ -293,16 +206,15 @@ int decryptTad(char const* src)
     /*
     Get the title key + IV from the ticket.
     */
+
     iprintf("Decrypting SRL:\n\n");
     iprintf("  Finding title key...\n");
-    FILE *ticket = fopen("sd:/_nds/tadtests/ticket.bin", "rb");
+    FILE *ticket = fopen("sd:/_nds/tadtests/tmp/ticket.srl", "rb");
     unsigned char title_key_enc[16];
     fseek(ticket, 447, SEEK_SET);
     fread(title_key_enc, 1, 16, ticket);
     iprintf("  Title key found!\n");
-    for (int i = 0; i < 16; i++) {
-        iprintf("%02X", title_key_enc[i]);
-    }
+    /* for (int i = 0; i < 16; i++) {iprintf("%02X", title_key_enc[i]);} */
     iprintf("\n");
     iprintf("  Finding title key IV...\n");
     unsigned char title_key_iv[16];
@@ -310,31 +222,58 @@ int decryptTad(char const* src)
     fread(title_key_iv, 1, 8, ticket);
     memset(title_key_iv + 8, 0, 8);
     iprintf("  Title key IV found!\n");
-    for (int i = 0; i < 16; i++) {
-        iprintf("%02X", title_key_iv[i]);
-    }
+    /* for (int i = 0; i < 16; i++) {iprintf("%02X", title_key_iv[i]);} */
     iprintf("\n");
     fclose(ticket);
 
+    /*
+    This is SRL decryption. AES-CBC.
+    
+        Common key + title key IV to decrypt title key, title key + content IV to decrypt content
+
+    We have to try each possible common key until we find one that works. I don't know a better way to do this
+    (nothing in the TAD would specify the key needed) so we'll try keys in the order of which ones are more common:
+
+        DEV --> DEBUGGER --> PROD
+
+    We check for only zerobytes at 0x15-1B to see if the SRL is decrypted properly. (should always be zerobytes)
+    
+    https://problemkaputt.de/gbatek.htm#dscartridgeheader
+    https://gist.github.com/rvtr/f1069530129b7a57967e3fc4b30866b4#file-decrypt_tad-py-L84
+    */
+
     iprintf("  Decrypting title key...\n");
-    unsigned char decryptedBlock[16];
-    /* ============================================= */
-    iprintf("  Trying dev common key...\n");
-    for (int i = 0; i < sizeof(devKey); i++) {
-        printf("%02X", devKey[i]);
-    }
-    printf("\n");
-    /* ============================================= */
     unsigned char title_key_dec[16];
-
-    decrypt_title_key(devKey, title_key_iv, title_key_enc, sizeof(title_key_enc), sizeof(devKey), title_key_dec);
+    decrypt_cbc(devKey, title_key_iv, title_key_enc, sizeof(title_key_enc), sizeof(devKey), title_key_dec);
     printf("  Title key decrypted!\n");
-    for (int i = 0; i < sizeof(title_key_dec); i++) {
-        printf("%02X", title_key_dec[i]);
-    }
-    printf("\n");
+    /* for (int i = 0; i < 16; i++) {printf("%02X", title_key_dec[i]);} */
 
-    testroutine();
+    iprintf("\n  Decrypting SRL chunks...\n");
+    unsigned char srl_buffer_enc[16];
+    unsigned char srl_buffer_dec[16];
+    unsigned char content_iv[] = {
+        0x00, 0x00, 0x00, 0x00 ,0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+    FILE *srlFile_enc = fopen("sd:/_nds/tadtests/tmp/srl_enc.srl", "rb");
+    fseek(srlFile_enc, 0, SEEK_SET);
+    FILE *srlFile_dec = fopen("sd:/_nds/tadtests/tmp/tad.srl", "wb");
+    fseek(srlFile_dec, 0, SEEK_SET);
+
+    for (int i = 0; i < swap_endian_u32(header.srlSize);) {
+        fread(srl_buffer_enc, 1, 16, srlFile_enc);
+        /* ===== silly debug  ===== */
+        iprintf("%ld - %d / %ld", ftell(file), i, swap_endian_u32(header.srlSize));
+        /* ===== end of debug ===== */
+
+        decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
+        fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
+        i=i+16;
+    }
+    fclose(srlFile_enc);
+    fclose(srlFile_dec);
+    iprintf("\nDone everything!");
+
 	//return copyFilePart(src, 0, size, dst);
 	return 0; 
 
