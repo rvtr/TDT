@@ -23,11 +23,11 @@ enum {
 	MAIN_MENU_MODE,
 	MAIN_MENU_INSTALL,
 	MAIN_MENU_TITLES,
-	MAIN_MENU_BACKUP,
+	//MAIN_MENU_BACKUP,
 	MAIN_MENU_TEST,
 	MAIN_MENU_FIX,
-	MAIN_MENU_DATA_MANAGEMENT,
-	MAIN_MENU_LANGUAGE_PATCHER,
+	//MAIN_MENU_DATA_MANAGEMENT,
+	//MAIN_MENU_LANGUAGE_PATCHER,
 	MAIN_MENU_EXIT
 };
 
@@ -62,10 +62,10 @@ static int _mainMenu(int cursor)
 	iprintf("\nversion %s\n", VERSION);
 	iprintf("\n\n\x1B[41mWARNING:\x1B[47m This tool can write to\nyour internal NAND!\n\nThis always has a risk, albeit\nlow, of \x1B[41mbricking\x1B[47m your system\nand should be done with caution!\n");
 	iprintf("\n\t  \x1B[46mhttps://dsi.cfw.guide\x1B[47m\n");
-	iprintf("\n\n \x1B[46mgithub.com/rvtr/TDT\x1B[47m\n");
-	iprintf("\x1b[22;0HJeff - 2018-2019");
-	iprintf("\x1b[23;0HPk11 - 2022-2023");
-	iprintf("\x1b[24;0Hrmc  - 2024-2024");
+	iprintf("\n\x1B[46mgithub.com/rvtr/TDT\x1B[47m\n");
+	iprintf("\x1b[21;0HJeff - 2018-2019");
+	iprintf("\x1b[22;0HPk11 - 2022-2023");
+	iprintf("\x1b[23;0Hrmc  - 2024-2024");
 
 	//menu
 	Menu* m = newMenu();

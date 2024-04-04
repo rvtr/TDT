@@ -388,9 +388,9 @@ bool install(char* tadPath, bool systemTitle)
 		result = decryptTad(fpath);
 		//title id must be one of these
 		if (h->tid_high == 0x00030004 || // DSiWare
-			h->tid_high == 0x00030005 || // "unimportant" system titles
-			h->tid_high == 0x00030011 || // SRLs in the TWL SDK
-			h->tid_high == 0x00030015 || // system titles
+			h->tid_high == 0x00030005 || // "Unimportant" system titles
+			h->tid_high == 0x0003000f || // Data titles
+			h->tid_high == 0x00030015 || // System titles
 			h->tid_high == 0x00030017)   // Launcher
 		{}
 		else
@@ -401,19 +401,6 @@ bool install(char* tadPath, bool systemTitle)
 			iprintf("This is not a DSi rom.\n");
 			iprintf("\x1B[47m");	//white
 			goto error;
-		}
-
-		//patch dev titles to system titles on SysNAND.
-		//
-		//software released through the TWL SDK usually comes as a TAD and an SRL
-		//things like NandFiler have a TAD with a TID of 0x00030015 and an SRL with 0x00030011
-		//the TAD is the installable version, so I'm assuming that 0x00030015 is what the console wants to see on NAND
-		//this changes the SRL TID accordingly
-		//not entirely sure why there's even any difference. I think the installed TAD and SRL the same as each other (minus the TID)
-		if(!sdnandMode && h->tid_high == 0x00030011)
-		{
-			h->tid_high = 0x00030015;
-			fixHeader = true;
 		}
 
 		//offer to patch system titles to normal DSiWare on SysNAND
@@ -453,28 +440,17 @@ bool install(char* tadPath, bool systemTitle)
 			u32 tidLow = (h->tid_low & 0xFFFFFF00);
 			if (!sdnandMode && (
 				(h->tid_high == 0x00030005 && (
-					tidLow == 0x484e4400 || // DS Download Play
-					tidLow == 0x484e4500 || // PictoChat
 					tidLow == 0x484e4900 || // Nintendo DSi Camera
 					tidLow == 0x484e4a00 || // Nintendo Zone
 					tidLow == 0x484e4b00    // Nintendo DSi Sound
-				)) || (h->tid_high == 0x00030011 && (
-					tidLow == 0x30535500 || // Twl SystemUpdater
-					tidLow == 0x34544e00 || // TwlNmenu
-					tidLow == 0x54574c00    // TWL EVA
 				)) || (h->tid_high == 0x00030015 && (
 					tidLow == 0x484e4200 || // System Settings
-					tidLow == 0x484e4600 || // Nintendo DSi Shop
-					tidLow == 0x34544e00    // TwlNmenu
+					tidLow == 0x484e4600    // Nintendo DSi Shop
 				)) || (h->tid_high == 0x00030017 && (
 					tidLow == 0x484e4100    // Launcher
 				))) && (
 					(h->tid_low & 0xFF) == region || // Only blacklist console region, or the following programs that have all-region codes:
-					h->tid_low == 0x484e4541 ||      // PictoChat 
-					h->tid_low == 0x484e4441 ||      // Download Play
-					h->tid_low == 0x30535541 ||      // Twl SystemUpdater (iirc one version fits in NAND)
 					h->tid_low == 0x34544e41 ||      // TwlNmenu (blocking due to potential to uninstall system titles)
-					h->tid_low == 0x54574c41 ||      // TWL EVA
 					region == 0                      //if the region check failed somehow, blacklist everything
 				))
 			{
@@ -498,6 +474,9 @@ bool install(char* tadPath, bool systemTitle)
 		{
 			const char system[] = "\x1B[41mWARNING:\x1B[47m This is a system app,\ninstalling it is potentially\nmore risky than regular DSiWare.\n\x1B[33m";
 			const char areYouSure[] = "Are you sure you want to install\n";
+			clearScreen(&topScreen); // Top screen breaks after this for some reason.
+			printTadInfo(tadPath);
+			clearScreen(&bottomScreen);
 			char* msg = (char*)malloc(strlen(system) + strlen(areYouSure) + strlen(fpath) + 2);
 			if (sdnandMode || h->tid_high == 0x00030004)
 				sprintf(msg, "%s%s?\n", areYouSure, fpath);
@@ -685,11 +664,23 @@ bool install(char* tadPath, bool systemTitle)
 
 			//create 000000##.app
 			{
-				iprintf("Creating 000000%02x.app...", appVersion);
+				// We must get the app name from the TMD (0x1E4-1E8). 
+				// NTM/TMFH did it weirdly before by using a single byte at 0x1E7 called "appVersion"?
+				// Not sure how that even worked at all. The home menu deleted the incorrectly named apps
+				// and TwlNmenu showed them as being broken.
+				//
+				// This new code should always create valid titles.
+				FILE *tmd = fopen(tmdPath, "rb");
+				unsigned char appName[4];
+				fseek(tmd, 484, SEEK_SET);
+				fread(appName, 1, 4, tmd);
+				fclose(tmd);
+
+				iprintf("Creating %02x%02x%02x%02x.app...", appName[0], appName[1], appName[2], appName[3]);
 				swiWaitForVBlank();
 
 				char appPath[80];
-				sprintf(appPath, "%s/000000%02x.app", contentPath, appVersion);
+				sprintf(appPath, "%s/%02x%02x%02x%02x.app", contentPath, appName[0], appName[1], appName[2], appName[3]);
 
 				//copy nds file to app
 				{

@@ -31,19 +31,24 @@
     If for whatever reason you want to make TADs, see here:
     https://randommeaninglesscharacters.com/dsidev/man/maketad.html
 */
-const unsigned char devKey[] = {
-    0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
-    0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA
+const unsigned char commonKey[3][16] = {
+    // DEV
+    {0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
+     0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA}, 
+    // PROD
+    {0xAF, 0x1B, 0xF5, 0x16, 0xA8, 0x07, 0xD2, 0x1A,
+     0xEA, 0x45, 0x98, 0x4F, 0x04, 0x74, 0x28, 0x61},
+    // DEBUGGER
+    {0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A,
+     0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3}
 };
-const unsigned char prodKey[] = {
-    0xAF, 0x1B, 0xF5, 0x16, 0xA8, 0x07, 0xD2, 0x1A,
-    0xEA, 0x45, 0x98, 0x4F, 0x04, 0x74, 0x28, 0x61
+// Content IV be fine as a hardcoded string. Content IV is based off of the content index. (index # with zerobyte padding) 
+// All TADs I've seen only ever had a single content. It might be a good idea to add something down the line in case a
+// weird TAD pops up, but until then this should do.
+unsigned char content_iv[] = {
+    0x00, 0x00, 0x00, 0x00 ,0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
-const unsigned char debuggerKey[] = {
-    0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A,
-    0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3
-};
-
 typedef struct {
     uint32_t hdrSize;
     uint16_t tadType;
@@ -96,6 +101,9 @@ int decryptTad(char const* src)
         return 1;
     }
 
+    // idk how to create folders recursively
+    mkdir("sd:/_nds", 0777);
+    mkdir("sd:/_nds/tadtests", 0777);
     mkdir("sd:/_nds/tadtests/tmp", 0777);
 
     /*
@@ -131,7 +139,8 @@ int decryptTad(char const* src)
 
     Header header;
     fread(&header, sizeof(Header), 1, file);
-    iprintf("Parsing TAD header:\n");
+    fclose(file);
+    iprintf("Parsing TAD header...\n");
     Tad tad;
     tad.hdrOffset = 0;
     // All offsets in the TAD are aligned to 64 bytes.
@@ -142,28 +151,21 @@ int decryptTad(char const* src)
     tad.srlOffset = round_up(tad.tmdOffset + swap_endian_u32(header.tmdSize), 64);
     tad.metaOffset = round_up(tad.srlOffset + swap_endian_u32(header.srlSize), 64);
     // TODO: Make sure offset calculation and alignment is correct by comparing that to total size
-    iprintf("  hdrSize:      %lu\n", swap_endian_u32(header.hdrSize));
-    iprintf("  hdrOffset:    %lu\n", tad.hdrOffset);
-    // 18803 = "Is". This is the standard TAD type.
-    if (swap_endian_u16(header.tadType) == 18803) {
-        iprintf("  tadType:      'Is'\n");
-    } else {
-        iprintf("  tadType:      UNKNOWN\nERROR: unexpected TAD type\n");
-        return 1;
-    }
-    iprintf("  tadVersion:   %u\n", swap_endian_u16(header.tadVersion));
-    iprintf("  certSize:     %lu\n", swap_endian_u32(header.certSize));
-    iprintf("  certOffset:   %lu\n", tad.certOffset);
-    iprintf("  crlSize:      %lu\n", swap_endian_u32(header.crlSize));
-    iprintf("  crlOffset:    %lu\n", tad.crlOffset);
-    iprintf("  ticketSize:   %lu\n", swap_endian_u32(header.ticketSize));
-    iprintf("  ticketOffset: %lu\n", tad.ticketOffset);
-    iprintf("  tmdSize:      %lu\n", swap_endian_u32(header.tmdSize));
-    iprintf("  tmdOffset:    %lu\n", tad.tmdOffset);
-    iprintf("  srlSize:      %lu\n", swap_endian_u32(header.srlSize));
-    iprintf("  srlOffset:    %lu\n", tad.srlOffset);
-    iprintf("  metaSize:     %lu\n", swap_endian_u32(header.metaSize));
-    iprintf("  metaOffset:   %lu\n", tad.metaOffset);
+    //iprintf("  hdrSize:      %lu\n", swap_endian_u32(header.hdrSize));
+    //iprintf("  hdrOffset:    %lu\n", tad.hdrOffset);
+    //iprintf("  tadVersion:   %u\n", swap_endian_u16(header.tadVersion));
+    //iprintf("  certSize:     %lu\n", swap_endian_u32(header.certSize));
+    //iprintf("  certOffset:   %lu\n", tad.certOffset);
+    //iprintf("  crlSize:      %lu\n", swap_endian_u32(header.crlSize));
+    //iprintf("  crlOffset:    %lu\n", tad.crlOffset);
+    //iprintf("  ticketSize:   %lu\n", swap_endian_u32(header.ticketSize));
+    //iprintf("  ticketOffset: %lu\n", tad.ticketOffset);
+    //iprintf("  tmdSize:      %lu\n", swap_endian_u32(header.tmdSize));
+    //iprintf("  tmdOffset:    %lu\n", tad.tmdOffset);
+    //iprintf("  srlSize:      %lu\n", swap_endian_u32(header.srlSize));
+    //iprintf("  srlOffset:    %lu\n", tad.srlOffset);
+    //iprintf("  metaSize:     %lu\n", swap_endian_u32(header.metaSize));
+    //iprintf("  metaOffset:   %lu\n", tad.metaOffset);
 
     /*
     Copy the contents of the TAD to the SD card.
@@ -174,57 +176,36 @@ int decryptTad(char const* src)
     trying to sign files for dev on a prod console.
     */
 
-    iprintf("\n--------------------------------\nCopying output files:\n");
+    iprintf("Copying output files...\n");
     // Sorry for copy pasting, I'll make this a routine later
-    iprintf("  Copying TMD...\n"); 
-    FILE *tmdFile = fopen("sd:/_nds/tadtests/tmp/temp.tmd", "wb");
-    fseek(file, tad.tmdOffset, SEEK_SET);
-    for (int i = 0; i < swap_endian_u32(header.tmdSize); i++) {
-        char ch = fgetc(file);
-        fputc(ch, tmdFile);
-    }
-    fclose(tmdFile);
+    //iprintf("  Copying TMD...\n"); 
+    copyFilePart(src, tad.tmdOffset, swap_endian_u32(header.tmdSize), "sd:/_nds/tadtests/tmp/temp.tmd");
 
-    iprintf("  Copying ticket...\n");
-    FILE *ticketFile = fopen("sd:/_nds/tadtests/tmp/temp.tik", "wb");
-    fseek(file, tad.ticketOffset, SEEK_SET);
-    for (int i = 0; i < swap_endian_u32(header.ticketSize); i++) {
-        char ch = fgetc(file);
-        fputc(ch, ticketFile);
-    }
-    fclose(ticketFile);
+    //iprintf("  Copying ticket...\n");
+    copyFilePart(src, tad.ticketOffset, swap_endian_u32(header.ticketSize), "sd:/_nds/tadtests/tmp/temp.tik");
     
-    iprintf("  Copying SRL...\n"); 
-    FILE *srlFile = fopen("sd:/_nds/tadtests/tmp/temp.srl.enc", "wb");
-    fseek(file, tad.srlOffset, SEEK_SET);
-    for (int i = 0; i < swap_endian_u32(header.srlSize); i++) {
-        char ch = fgetc(file);
-        fputc(ch, srlFile);
-    }
-    fclose(srlFile);
-    fclose(file);
-
-    iprintf("\n--------------------------------\n");
+    //iprintf("  Copying SRL...\n"); 
+    copyFilePart(src, tad.srlOffset, swap_endian_u32(header.srlSize), "sd:/_nds/tadtests/tmp/temp.srl.enc");
 
     /*
     Get the title key + IV from the ticket.
     */
 
-    iprintf("Decrypting SRL:\n\n");
-    iprintf("  Finding title key...\n");
+    iprintf("Decrypting SRL...\n");
+    //iprintf("  Finding title key...\n");
     FILE *ticket = fopen("sd:/_nds/tadtests/tmp/temp.tik", "rb");
     unsigned char title_key_enc[16];
     fseek(ticket, 447, SEEK_SET);
     fread(title_key_enc, 1, 16, ticket);
-    iprintf("  Title key found!\n");
+    //iprintf("  Title key found!\n");
     /* for (int i = 0; i < 16; i++) {iprintf("%02X", title_key_enc[i]);} */
     iprintf("\n");
-    iprintf("  Finding title key IV...\n");
+    //iprintf("  Finding title key IV...\n");
     unsigned char title_key_iv[16];
     fseek(ticket, 476, SEEK_SET);
     fread(title_key_iv, 1, 8, ticket);
     memset(title_key_iv + 8, 0, 8);
-    iprintf("  Title key IV found!\n");
+    //iprintf("  Title key IV found!\n");
     /* for (int i = 0; i < 16; i++) {iprintf("%02X", title_key_iv[i]);} */
     iprintf("\n");
     fclose(ticket);
@@ -244,42 +225,31 @@ int decryptTad(char const* src)
     https://problemkaputt.de/gbatek.htm#dscartridgeheader
     https://gist.github.com/rvtr/f1069530129b7a57967e3fc4b30866b4#file-decrypt_tad-py-L84
     */
-
-    iprintf("  Decrypting title key...\n");
+    //iprintf("  Decrypting title key...\n");
     unsigned char title_key_dec[16];
-    decrypt_cbc(devKey, title_key_iv, title_key_enc, sizeof(title_key_enc), sizeof(devKey), title_key_dec);
-    printf("  Title key decrypted!\n");
+    decrypt_cbc(commonKey[0], title_key_iv, title_key_enc, sizeof(title_key_enc), 16, title_key_dec);
+    //printf("  Title key decrypted!\n");
     /* for (int i = 0; i < 16; i++) {printf("%02X", title_key_dec[i]);} */
 
-    iprintf("\n  Decrypting SRL chunks...\n");
     unsigned char srl_buffer_enc[16];
     unsigned char srl_buffer_dec[16];
-    // Should be fine as a hardcoded string. Content IV is based off of the content index. (index # with zerobyte padding) 
-    // All TADs I've only ever a single content. It might be a good idea to add something down the line in case a weird
-    // TAD pops up, but until then this should do.
-    unsigned char content_iv[] = {
-        0x00, 0x00, 0x00, 0x00 ,0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-    };
     FILE *srlFile_enc = fopen("sd:/_nds/tadtests/tmp/temp.srl.enc", "rb");
     fseek(srlFile_enc, 0, SEEK_SET);
     FILE *srlFile_dec = fopen("sd:/_nds/tadtests/tmp/temp.srl", "wb");
     fseek(srlFile_dec, 0, SEEK_SET);
 
+    //iprintf("\n  Decrypting SRL chunks...\n");
     for (int i = 0; i < swap_endian_u32(header.srlSize);) {
         fread(srl_buffer_enc, 1, 16, srlFile_enc);
-        /* ===== silly debug  ===== */
-        iprintf("%ld - %d / %ld\n", ftell(file), i, swap_endian_u32(header.srlSize));
-        /* ===== end of debug ===== */
-
         decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
         fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
+        printProgressBar( ((float)i / (float)swap_endian_u32(header.srlSize)) );
         i=i+16;
     }
     fclose(srlFile_enc);
     fclose(srlFile_dec);
-    iprintf("\nReady to install!");
     return "sd:/_nds/tadtests/tmp/temp.srl";
+
 }
 
 void printTadInfo(char const* fpath)
@@ -288,16 +258,15 @@ void printTadInfo(char const* fpath)
     if (!fpath) return;
 
 
-    uint32_t srlCompany;
-    uint32_t srlTidLow;
-    uint32_t srlTidHigh;
-    unsigned char srlVerLow = 0x00;
-    unsigned char srlVerHigh = 0x00;
+    unsigned char srlCompany[2];
+    unsigned char srlTidLow[4];
+    unsigned char srlTidHigh[4];
+    unsigned char srlVerLow[1];
+    unsigned char srlVerHigh[1];
 
     FILE *file = fopen(fpath, "rb");
     Header header;
     fread(&header, sizeof(Header), 1, file);
-    iprintf("Parsing TAD header:\n");
     Tad tad;
     tad.hdrOffset = 0;
     // All offsets in the TAD are aligned to 64 bytes.
@@ -308,45 +277,42 @@ void printTadInfo(char const* fpath)
     tad.srlOffset = round_up(tad.tmdOffset + swap_endian_u32(header.tmdSize), 64);
     tad.metaOffset = round_up(tad.srlOffset + swap_endian_u32(header.srlSize), 64);
     // Get info from TMD.
-    fseek(file, swap_endian_u32(tad.tmdOffset)+396, SEEK_SET);
+    fseek(file, tad.tmdOffset+396, SEEK_SET);
     fread(srlTidHigh, 1, 4, file);
     fread(srlTidLow, 1, 4, file);
-    fseek(file, swap_endian_u32(tad.tmdOffset)+408, SEEK_SET);
-    fread(srlCompany, 1, 4, file);
-    fseek(file, swap_endian_u32(tad.tmdOffset)+476, SEEK_SET);
+    fseek(file, tad.tmdOffset+408, SEEK_SET);
+    fread(srlCompany, 1, 2, file);
+    fseek(file, tad.tmdOffset+476, SEEK_SET);
     fread(srlVerHigh, 1, 1, file);
     fread(srlVerLow, 1, 1, file);
 
-    iprintf("  tadVersion:   %u\n", swap_endian_u16(header.tadVersion));
-    iprintf("  certSize:     %lu\n", swap_endian_u32(header.certSize));
-    iprintf("  certOffset:   %lu\n", tad.certOffset);
-    iprintf("  crlSize:      %lu\n", swap_endian_u32(header.crlSize));
-    iprintf("  crlOffset:    %lu\n", tad.crlOffset);
-    iprintf("  ticketSize:   %lu\n", swap_endian_u32(header.ticketSize));
-    iprintf("  ticketOffset: %lu\n", tad.ticketOffset);
-    iprintf("  tmdSize:      %lu\n", swap_endian_u32(header.tmdSize));
-    iprintf("  tmdOffset:    %lu\n", tad.tmdOffset);
-    iprintf("  srlSize:      %lu\n", swap_endian_u32(header.srlSize));
-    iprintf("  srlOffset:    %lu\n", tad.srlOffset);
-    iprintf("  metaSize:     %lu\n", swap_endian_u32(header.metaSize));
-    iprintf("  metaOffset:   %lu\n", tad.metaOffset);
+    // I am so sorry for this mess.
+    iprintf("\nSize:\n  ");
+    fseek(file, 0, SEEK_END);
+    unsigned long long romSize = ftell(file);
+    iprintf("\x1B[42m");    //green
+    printBytes(romSize);
+    iprintf("\x1B[47m");    //white
+    iprintf(" (\x1B[42m%ld blocks\x1B[47m)\n", ((swap_endian_u32(header.srlSize) / BYTES_PER_BLOCK) * BYTES_PER_BLOCK + BYTES_PER_BLOCK) / BYTES_PER_BLOCK);
 
-    //proper title
-    // TODO! Might not be possible though :((
+    iprintf("Game Code:\n  ");
+    iprintf("\x1B[42m");    //green
+    for (int i = 0; i < 4; i++) {printf("%c", srlTidLow[i]);}
+    iprintf("\x1B[47m");    //white
 
-    //size in blocks, rounded up
-    iprintf("Size: (%ld blocks)\n", ((swap_endian_u32(header.srlSize) / BYTES_PER_BLOCK) * BYTES_PER_BLOCK + BYTES_PER_BLOCK) / BYTES_PER_BLOCK);
+    iprintf("\nGame Version:\n  \x1B[42m%d.%d\x1B[47m (NUS: \x1B[42mv%d\x1B[47m)\n", (int)srlVerHigh[0] * 256, (int)srlVerLow[0], ((int)srlVerHigh[0] * 256) + (int)srlVerLow[0]);
 
-    iprintf("Game Code: %c\n", (char)srlTidLow);
-
-    iprintf("Game Version: %u.%u (NUS: v%u)\n", srlVerHigh * 256, srlVerLow, (srlVerHigh * 256) + srlVerLow);
-
-    iprintf("Company Code: %c (%lu)\n", (char)srlCompany, srlCompany);
-
+    iprintf("Company Code:\n  \x1B[42m%c%c\x1B[47m(\x1B[42m%02x%02x\x1B[47m)\n", srlCompany[0], srlCompany[1], srlCompany[0], srlCompany[1]);
+    
     // Print program type based on TID high?
-    iprintf("Title ID: %08lx %08lx", srlTidHigh, srlTidLow);
+    iprintf("Title ID: \n  ");
+    iprintf("\x1B[42m");    //green
+    for (int i = 0; i < 4; i++) {printf("%02x", srlTidHigh[i]);}
+    iprintf(" ");
+    for (int i = 0; i < 4; i++) {printf("%02x", srlTidLow[i]);}
+    iprintf("\x1B[47m");    //white
 
     //print full file path
-    iprintf("\n%s\n", fpath);
+    iprintf("\n\n%s\n", fpath);
 
 }
