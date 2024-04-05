@@ -867,11 +867,11 @@ complete:
 	if (!sdnandMode)
 		nandio_lock_writing();
 
-    remove("sd:/_nds/tadtests/tmp/temp.tmd");
-    remove("sd:/_nds/tadtests/tmp/temp.tik");
-    remove("sd:/_nds/tadtests/tmp/temp.srl.enc");
-    remove("sd:/_nds/tadtests/tmp/temp.srl");
-
+    remove("sd:/_nds/TADDeliveryTool/tmp/temp.tmd");
+    remove("sd:/_nds/TADDeliveryTool/tmp/temp.tik");
+    remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc");
+    remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
+    rmdir("sd:/_nds/TADDeliveryTool/tmp");
 
 	return result;
 }

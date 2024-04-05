@@ -106,8 +106,8 @@ int openTad(char const* src) {
 
     // idk how to create folders recursively
     mkdir("sd:/_nds", 0777);
-    mkdir("sd:/_nds/tadtests", 0777);
-    mkdir("sd:/_nds/tadtests/tmp", 0777);
+    mkdir("sd:/_nds/TADDeliveryTool", 0777);
+    mkdir("sd:/_nds/TADDeliveryTool/tmp", 0777);
 
     /*
     Please excuse my terrible copy paste coding. I do not know C and I'm translating from other languages
@@ -196,13 +196,13 @@ int openTad(char const* src) {
     iprintf("Copying output files...\n");
     // Sorry for copy pasting, I'll make this a routine later
     iprintf("  Copying TMD...\n"); 
-    copyFilePart(src, tad.tmdOffset, swap_endian_u32(header.tmdSize), "sd:/_nds/tadtests/tmp/temp.tmd");
+    copyFilePart(src, tad.tmdOffset, swap_endian_u32(header.tmdSize), "sd:/_nds/TADDeliveryTool/tmp/temp.tmd");
 
     iprintf("  Copying ticket...\n");
-    copyFilePart(src, tad.ticketOffset, swap_endian_u32(header.ticketSize), "sd:/_nds/tadtests/tmp/temp.tik");
+    copyFilePart(src, tad.ticketOffset, swap_endian_u32(header.ticketSize), "sd:/_nds/TADDeliveryTool/tmp/temp.tik");
     
     iprintf("  Copying SRL...\n"); 
-    copyFilePart(src, tad.srlOffset, swap_endian_u32(header.srlSize), "sd:/_nds/tadtests/tmp/temp.srl.enc");
+    copyFilePart(src, tad.srlOffset, swap_endian_u32(header.srlSize), "sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc");
 
     /*
     Get the title key + IV from the ticket.
@@ -210,7 +210,7 @@ int openTad(char const* src) {
 
     iprintf("Decrypting SRL...\n");
     //iprintf("  Finding title key...\n");
-    FILE *ticket = fopen("sd:/_nds/tadtests/tmp/temp.tik", "rb");
+    FILE *ticket = fopen("sd:/_nds/TADDeliveryTool/tmp/temp.tik", "rb");
     unsigned char title_key_enc[16];
     fseek(ticket, 447, SEEK_SET);
     fread(title_key_enc, 1, 16, ticket);
@@ -247,21 +247,21 @@ int openTad(char const* src) {
     keyFail = decryptTad(devKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
 
     if (keyFail == TRUE) {
-        remove("sd:/_nds/tadtests/tmp/temp.srl");
+        remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
         iprintf("Key fail!\n\nTrying debugger common key...\n");
         keyFail = decryptTad(debuggerKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
     }
     if (keyFail == TRUE) {
-        remove("sd:/_nds/tadtests/tmp/temp.srl");
+        remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
         iprintf("Key fail!\n\nTrying prod common key...\n");
         keyFail = decryptTad(prodKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
     }
     if (keyFail == TRUE) {
-        remove("sd:/_nds/tadtests/tmp/temp.srl");
+        remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
         iprintf("All keys failed!\n");
         return "ERROR";
     }
-    return "sd:/_nds/tadtests/tmp/temp.srl";
+    return "sd:/_nds/TADDeliveryTool/tmp/temp.srl";
 
 }
 
@@ -273,15 +273,17 @@ bool decryptTad(unsigned char* commonKey,
                 unsigned char* srlTidLow) {
     unsigned char title_key_dec[16];
     unsigned char title_key_iv_bak[16];
+    unsigned char content_iv_bak[16];
     unsigned char srl_buffer_enc[16];
     unsigned char srl_buffer_dec[16];
 
-    // Backup IV because PolarSSL will overwrite it
+    // Backup IVs because PolarSSL will overwrite it
     memcpy( title_key_iv_bak, title_key_iv, 16 );
+    memcpy( content_iv_bak, content_iv, 16 );
 
-    FILE *srlFile_enc = fopen("sd:/_nds/tadtests/tmp/temp.srl.enc", "rb");
+    FILE *srlFile_enc = fopen("sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc", "rb");
     fseek(srlFile_enc, 0, SEEK_SET);
-    FILE *srlFile_dec = fopen("sd:/_nds/tadtests/tmp/temp.srl", "wb");
+    FILE *srlFile_dec = fopen("sd:/_nds/TADDeliveryTool/tmp/temp.srl", "wb");
     fseek(srlFile_dec, 0, SEEK_SET);
 
     iprintf("  Decrypting SRL in chunks..\n");
@@ -305,8 +307,9 @@ bool decryptTad(unsigned char* commonKey,
     }
     fclose(srlFile_dec);
     fclose(srlFile_enc);
-    // Restore IV
+    // Restore IVs
     memcpy( title_key_iv, title_key_iv_bak, 16 );
+    memcpy( content_iv, content_iv_bak, 16 );
     return keyFail;
 }
 
