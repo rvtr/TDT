@@ -1,6 +1,7 @@
 *.o
 *.d
 *.nds
+*.tad
 *.dsi
 *.elf
 *.map

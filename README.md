@@ -1,5 +1,6 @@
 # NAND Title Manager
 A basic title manager for the Nintendo DSi supporting both hiyaCFW's SDNAND and SysNAND, modified from JeffRuLz's Title Manager for HiyaCFW.
+This fork has been modified to allow installing TADs, the DSi's version of a WAD. These are typically signed and encrypted for development units. This makes them impossible to install on a retail unit. My NTM fork should let dev TADs install on retail, retail TADs install on dev, etc.
 
 ## WARNING
 This can modify your internal system NAND! There is *always* a risk of **bricking**, albeit small, when you modify NAND. Please proceed with caution. Having Unlaunch installed is also strongly recommended as it will likely protect you if something manages to go wrong.
@@ -30,4 +31,4 @@ This can modify your internal system NAND! There is *always* a risk of **brickin
 - [Martin Korth (nocash)](https://problemkaputt.de): [GBATEK](https://problemkaputt.de/gbatek.htm)
 - [JeffRuLz](https://github.com/JeffRuLz): [TMFH](https://github.com/JeffRuLz/TMFH) (what this is a fork of)
 - [DesperateProgrammer](https://github.com/DesperateProgrammer): [DSi Language Patcher](https://github.com/DesperateProgrammer/DSiLanguagePacher) (working NAND writing code)
-- [rvtr](https://github.com/rvtr): Adding support for installing dev titles
+- [rvtr](https://github.com/rvtr): Adding support for installing TADs and dev titles

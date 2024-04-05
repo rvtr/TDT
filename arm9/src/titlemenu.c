@@ -92,6 +92,7 @@ static void generateList(Menu* m)
 	const char* dirs[] = {
 		"00030004",
 		"00030005",
+		//"0003000f",
 		"00030015",
 		"00030017"
 	};
@@ -100,17 +101,12 @@ static void generateList(Menu* m)
 		{ // 00030004
 			NULL //nothing blacklisted
 		},
-		{ // 00030005
-			"484e44", // DS Download Play
-			"484e45", // PictoChat
-			"484e49", // Nintendo DSi Camera
-			"484e4a", // Nintendo Zone
-			"484e4b", // Nintendo DSi Sound
+		{ // 0003000f
+			"484e43", // WiFi Firmware
 			NULL
 		},
 		{ // 00030015
 			"484e42", // System Settings
-			"484e46", // Nintendo DSi Shop
 			NULL
 		},
 		{ // 00030017
@@ -159,8 +155,7 @@ static void generateList(Menu* m)
 							blacklisted = true;
 
 						// also blacklist specific all-region titles
-						if ((strcmp("484e4441", ent->d_name) == 0) ||  // Download Play
-							(strcmp("484e4541", ent->d_name) == 0) ||  // PictoChat
+						if ((strcmp("484e4341", ent->d_name) == 0) ||  // WiFi Firmware
 							(strcmp("34544e41", ent->d_name) == 0))    // TwlNmenu
 							blacklisted = true;
 					}
