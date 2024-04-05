@@ -15,7 +15,7 @@ This can modify your internal system NAND! There is *always* a risk of **brickin
 - [DevkitPro](https://devkitpro.org/): devkitARM and libnds
 - [Tuxality](https://github.com/Tuxality): [maketmd](https://github.com/Tuxality/maketmd)
 - [Martin Korth (nocash)](https://problemkaputt.de): [GBATEK](https://problemkaputt.de/gbatek.htm)
-- [Epicpkmn11](https://github.com/Epicpkmn11): [TMFH](https://github.com/Epicpkmn11/NTM) (what this is a fork of)
+- [Epicpkmn11](https://github.com/Epicpkmn11): [NTM](https://github.com/Epicpkmn11/NTM) (what this is a fork of)
 - [JeffRuLz](https://github.com/JeffRuLz): [TMFH](https://github.com/JeffRuLz/TMFH) (what NTM is a fork of)
 - [DesperateProgrammer](https://github.com/DesperateProgrammer): [DSi Language Patcher](https://github.com/DesperateProgrammer/DSiLanguagePacher) (working NAND writing code)
 - [NinjaCheetah](https://github.com/NinjaCheetah): Helping fix some TAD decryption issues
