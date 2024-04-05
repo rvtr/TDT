@@ -31,16 +31,17 @@
     If for whatever reason you want to make TADs, see here:
     https://randommeaninglesscharacters.com/dsidev/man/maketad.html
 */
-const unsigned char commonKey[3][16] = {
-    // DEV
-    {0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
-     0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA}, 
-    // PROD
-    {0xAF, 0x1B, 0xF5, 0x16, 0xA8, 0x07, 0xD2, 0x1A,
-     0xEA, 0x45, 0x98, 0x4F, 0x04, 0x74, 0x28, 0x61},
-    // DEBUGGER
-    {0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A,
-     0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3}
+const unsigned char devKey[] = {
+    0xA1, 0x60, 0x4A, 0x6A, 0x71, 0x23, 0xB5, 0x29,
+    0xAE, 0x8B, 0xEC, 0x32, 0xC8, 0x16, 0xFC, 0xAA
+};
+const unsigned char prodKey[] = {
+    0xAF, 0x1B, 0xF5, 0x16, 0xA8, 0x07, 0xD2, 0x1A,
+    0xEA, 0x45, 0x98, 0x4F, 0x04, 0x74, 0x28, 0x61
+};
+const unsigned char debuggerKey[] = {
+    0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A,
+    0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3
 };
 // Content IV be fine as a hardcoded string. Content IV is based off of the content index. (index # with zerobyte padding) 
 // All TADs I've seen only ever had a single content. It might be a good idea to add something down the line in case a
@@ -69,7 +70,11 @@ typedef struct {
     uint32_t srlOffset;
     uint32_t metaOffset;
 } Tad;
-bool tadSuccess;
+unsigned char srlCompany[2];
+unsigned char srlTidLow[4];
+unsigned char srlTidHigh[4];
+unsigned char srlVerLow[1];
+unsigned char srlVerHigh[1];
 
 uint32_t swap_endian_u32(uint32_t x) {
     return (x >> 24) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | (x << 24);
@@ -79,8 +84,7 @@ uint16_t swap_endian_u16(uint16_t x) {
     return (x >> 8) | (x << 8);
 }
 
-uint32_t round_up( const u32 v, const u32 align )
-{
+uint32_t round_up( const u32 v, const u32 align ) {
     u32 r = ((v + align - 1) / align) * align;
     return r;
 }
@@ -91,8 +95,7 @@ void decrypt_cbc(const unsigned char* key, const unsigned char* iv, const unsign
     aes_crypt_cbc(&ctx, AES_DECRYPT, dataSize, iv, encryptedData, decryptedData);
 }
 
-int decryptTad(char const* src)
-{
+int openTad(char const* src) {
 	if (!src) return 1;
 
     FILE *file = fopen(src, "rb");
@@ -139,7 +142,6 @@ int decryptTad(char const* src)
 
     Header header;
     fread(&header, sizeof(Header), 1, file);
-    fclose(file);
     iprintf("Parsing TAD header...\n");
     Tad tad;
     tad.hdrOffset = 0;
@@ -153,6 +155,16 @@ int decryptTad(char const* src)
     // TODO: Make sure offset calculation and alignment is correct by comparing that to total size
     //iprintf("  hdrSize:      %lu\n", swap_endian_u32(header.hdrSize));
     //iprintf("  hdrOffset:    %lu\n", tad.hdrOffset);
+
+    // Commenting this block out makes the TAD decrypt improperly. Truly a programming moment.
+    // 18803 = "Is". This is the standard TAD type.
+    if (swap_endian_u16(header.tadType) == 18803) {
+        //iprintf("  tadType:      'Is'\n");
+    } else {
+        iprintf("  tadType:      UNKNOWN\nERROR: unexpected TAD type\n");
+        return 1;
+    }
+
     //iprintf("  tadVersion:   %u\n", swap_endian_u16(header.tadVersion));
     //iprintf("  certSize:     %lu\n", swap_endian_u32(header.certSize));
     //iprintf("  certOffset:   %lu\n", tad.certOffset);
@@ -167,6 +179,11 @@ int decryptTad(char const* src)
     //iprintf("  metaSize:     %lu\n", swap_endian_u32(header.metaSize));
     //iprintf("  metaOffset:   %lu\n", tad.metaOffset);
 
+    fseek(file, tad.tmdOffset+396, SEEK_SET);
+    fread(srlTidHigh, 1, 4, file);
+    fread(srlTidLow, 1, 4, file);
+    fclose(file);
+
     /*
     Copy the contents of the TAD to the SD card.
 
@@ -178,13 +195,13 @@ int decryptTad(char const* src)
 
     iprintf("Copying output files...\n");
     // Sorry for copy pasting, I'll make this a routine later
-    //iprintf("  Copying TMD...\n"); 
+    iprintf("  Copying TMD...\n"); 
     copyFilePart(src, tad.tmdOffset, swap_endian_u32(header.tmdSize), "sd:/_nds/tadtests/tmp/temp.tmd");
 
-    //iprintf("  Copying ticket...\n");
+    iprintf("  Copying ticket...\n");
     copyFilePart(src, tad.ticketOffset, swap_endian_u32(header.ticketSize), "sd:/_nds/tadtests/tmp/temp.tik");
     
-    //iprintf("  Copying SRL...\n"); 
+    iprintf("  Copying SRL...\n"); 
     copyFilePart(src, tad.srlOffset, swap_endian_u32(header.srlSize), "sd:/_nds/tadtests/tmp/temp.srl.enc");
 
     /*
@@ -211,7 +228,7 @@ int decryptTad(char const* src)
     fclose(ticket);
 
     /*
-    This is SRL decryption. AES-CBC.
+    This is SRL decryption (AES-CBC).
     
         Common key + title key IV to decrypt title key, title key + content IV to decrypt content
 
@@ -225,44 +242,78 @@ int decryptTad(char const* src)
     https://problemkaputt.de/gbatek.htm#dscartridgeheader
     https://gist.github.com/rvtr/f1069530129b7a57967e3fc4b30866b4#file-decrypt_tad-py-L84
     */
-    //iprintf("  Decrypting title key...\n");
-    unsigned char title_key_dec[16];
-    decrypt_cbc(commonKey[0], title_key_iv, title_key_enc, sizeof(title_key_enc), 16, title_key_dec);
-    //printf("  Title key decrypted!\n");
-    /* for (int i = 0; i < 16; i++) {printf("%02X", title_key_dec[i]);} */
+    bool keyFail;
+    iprintf("Trying dev common key...\n");
+    keyFail = decryptTad(devKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
 
+    if (keyFail == TRUE) {
+        remove("sd:/_nds/tadtests/tmp/temp.srl");
+        iprintf("Key fail!\n\nTrying debugger common key...\n");
+        keyFail = decryptTad(debuggerKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
+    }
+    if (keyFail == TRUE) {
+        remove("sd:/_nds/tadtests/tmp/temp.srl");
+        iprintf("Key fail!\n\nTrying prod common key...\n");
+        keyFail = decryptTad(prodKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
+    }
+    if (keyFail == TRUE) {
+        remove("sd:/_nds/tadtests/tmp/temp.srl");
+        iprintf("All keys failed!\n");
+        return "ERROR";
+    }
+    return "sd:/_nds/tadtests/tmp/temp.srl";
+
+}
+
+bool decryptTad(unsigned char* commonKey,
+                unsigned char* title_key_iv,
+                unsigned char* title_key_enc,
+                unsigned char* content_iv,
+                int srlSize,
+                unsigned char* srlTidLow) {
+    unsigned char title_key_dec[16];
+    unsigned char title_key_iv_bak[16];
     unsigned char srl_buffer_enc[16];
     unsigned char srl_buffer_dec[16];
+
+    // Backup IV because PolarSSL will overwrite it
+    memcpy( title_key_iv_bak, title_key_iv, 16 );
+
     FILE *srlFile_enc = fopen("sd:/_nds/tadtests/tmp/temp.srl.enc", "rb");
     fseek(srlFile_enc, 0, SEEK_SET);
     FILE *srlFile_dec = fopen("sd:/_nds/tadtests/tmp/temp.srl", "wb");
     fseek(srlFile_dec, 0, SEEK_SET);
 
-    //iprintf("\n  Decrypting SRL chunks...\n");
-    for (int i = 0; i < swap_endian_u32(header.srlSize);) {
+    iprintf("  Decrypting SRL in chunks..\n");
+    decrypt_cbc(commonKey, title_key_iv, title_key_enc, 16, 16, title_key_dec);
+    int i=0;
+    bool keyFail = FALSE;    
+    while (i < srlSize && keyFail == FALSE) {
         fread(srl_buffer_enc, 1, 16, srlFile_enc);
         decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
         fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
-        printProgressBar( ((float)i / (float)swap_endian_u32(header.srlSize)) );
+        printProgressBar( ((float)i / (float)srlSize) );
+        if (i == 560) {
+            if (srl_buffer_dec[3] != srlTidLow[0] ||
+                srl_buffer_dec[2] != srlTidLow[1] ||
+                srl_buffer_dec[1] != srlTidLow[2] ||
+                srl_buffer_dec[0] != srlTidLow[3] ) {
+                keyFail = TRUE;
+            }
+        }
         i=i+16;
     }
-    fclose(srlFile_enc);
     fclose(srlFile_dec);
-    return "sd:/_nds/tadtests/tmp/temp.srl";
-
+    fclose(srlFile_enc);
+    // Restore IV
+    memcpy( title_key_iv, title_key_iv_bak, 16 );
+    return keyFail;
 }
 
 void printTadInfo(char const* fpath)
 {
     clearScreen(&topScreen);
     if (!fpath) return;
-
-
-    unsigned char srlCompany[2];
-    unsigned char srlTidLow[4];
-    unsigned char srlTidHigh[4];
-    unsigned char srlVerLow[1];
-    unsigned char srlVerHigh[1];
 
     FILE *file = fopen(fpath, "rb");
     Header header;
@@ -314,5 +365,5 @@ void printTadInfo(char const* fpath)
 
     //print full file path
     iprintf("\n\n%s\n", fpath);
-
+    fclose(file);
 }

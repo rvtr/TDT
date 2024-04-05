@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 		}
 		else if (!unlaunchPatches)
 		{
-			messageBox("Unlaunch's Launcher Patches are\nnot enabled. You will need these\nif you patch any TADs.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
+			messageBox("Unlaunch's Launcher Patches are\nnot enabled. You will need these\nto boot any TADs.\n\n\x1B[46mhttps://dsi.cfw.guide/\x1B[47m");
 		}
 	}
 

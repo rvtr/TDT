@@ -365,7 +365,7 @@ bool install(char* tadPath, bool systemTitle)
 
 	//start installation
 	clearScreen(&bottomScreen);
-	char* fpath = decryptTad(tadPath);
+	char* fpath = openTad(tadPath);		
 
 	tDSiHeader* h = getRomHeader(fpath);
 
@@ -374,7 +374,7 @@ bool install(char* tadPath, bool systemTitle)
 		iprintf("\x1B[31m");	//red
 		iprintf("Error: ");
 		iprintf("\x1B[33m");	//yellow
-		iprintf("Could not open file.\n");
+		iprintf("Could not decrypt TAD.\n");
 		iprintf("\x1B[47m");	//white
 		goto error;
 	}
@@ -385,7 +385,6 @@ bool install(char* tadPath, bool systemTitle)
 		if (_patchGameCode(h))
 			fixHeader = true;
 
-		result = decryptTad(fpath);
 		//title id must be one of these
 		if (h->tid_high == 0x00030004 || // DSiWare
 			h->tid_high == 0x00030005 || // "Unimportant" system titles
@@ -396,14 +395,17 @@ bool install(char* tadPath, bool systemTitle)
 		else
 		{
 			iprintf("\x1B[31m");	//red
-			iprintf("Error: ");
+			iprintf("TID Error: ");
 			iprintf("\x1B[33m");	//yellow
-			iprintf("This is not a DSi rom.\n");
+			iprintf("Could not decrypt TAD.\n%s", fpath);
 			iprintf("\x1B[47m");	//white
 			goto error;
 		}
+		// I am going to remove patching because it results in bad TMDs that the launcher auto deletes.
+		// Comment these back in if you really want, but know that 99% of dev apps will not install right with patching.
 
 		//offer to patch system titles to normal DSiWare on SysNAND
+		/*
 		if(!sdnandMode && h->tid_high != 0x00030004 && h->tid_high != 0x00030017) //do not allow patching home menus to be normal DSiWare! This will trigger "ERROR! - 0x0000000000000008 HWINFO_SECURE" on prototype launchers. May also cause issues on the prod versions.
 		{
 			if(choiceBox("This is set as a system/dev\ntitle, would you like to patch\nit to be a normal DSiWare?\n\nThis is safer, but invalidates\nRSA checks and may not work.\n\nIf the title is homebrew this isstrongly recommended.") == YES)
@@ -412,8 +414,10 @@ bool install(char* tadPath, bool systemTitle)
 				fixHeader = true;
 			}
 		}
+		*/
 
 		//offer to patch home menus to be system titles on SysNAND
+		/*
 		if(!sdnandMode && h->tid_high == 0x00030017)
 		{
 			if(choiceBox("This title is a home menu.\nWould you like to patch it to bea system title?\n\nThis is safer and prevents your\nhome menu from being hidden.") == YES)
@@ -422,6 +426,7 @@ bool install(char* tadPath, bool systemTitle)
 				fixHeader = true;
 			}
 		}
+		*/
 
 		//no system titles without Unlaunch
 		if (!unlaunchFound && h->tid_high != 0x00030004)
@@ -538,6 +543,7 @@ bool install(char* tadPath, bool systemTitle)
 			goto error;
 
 		//system title patch
+		/*
 		if (systemTitle)
 		{
 			iprintf("System Title Patch...");
@@ -549,8 +555,10 @@ bool install(char* tadPath, bool systemTitle)
 
 			fixHeader = true;
 		}
+		*/
 
 		//check that there's space on nand
+		/*
 		if (!_checkDsiSpace(installSize, (h->tid_high != 0x00030004)))
 		{
 			if (sdnandMode && choicePrint("Install as system title?"))
@@ -563,6 +571,7 @@ bool install(char* tadPath, bool systemTitle)
 				goto error;
 			}
 		}
+		*/
 
 		//check for saves
 		char pubPath[PATH_MAX];
@@ -857,6 +866,12 @@ complete:
 
 	if (!sdnandMode)
 		nandio_lock_writing();
+
+    remove("sd:/_nds/tadtests/tmp/temp.tmd");
+    remove("sd:/_nds/tadtests/tmp/temp.tik");
+    remove("sd:/_nds/tadtests/tmp/temp.srl.enc");
+    remove("sd:/_nds/tadtests/tmp/temp.srl");
+
 
 	return result;
 }
