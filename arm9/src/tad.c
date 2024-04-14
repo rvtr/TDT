@@ -23,9 +23,7 @@
     The common keys for decrypting TADs.
 
     DEV: Used in most TADs. Anything created with the standard maketad will be dev.
-    PROD: Used in some TADs for factory tools like PRE_IMPORT and IMPORT. Really uncommon. I only know of 24 prod TADs
-        to have ever been found, and 19 of those haven't ever been released (pleeeeeaaaaase release IMPORT soon).
-        All retail signed and can't be created with any leaked maketads.
+    PROD: Used in some TADs for factory tools like PRE_IMPORT and IMPORT. Far less common. There are only ~200 publicly released, and they are impossible to make from scratch.
     DEBUGGER: Used in TwlSystemUpdater TADs. Created with maketad_updater.
     
     If for whatever reason you want to make TADs, see here:
@@ -110,10 +108,7 @@ int openTad(char const* src) {
     mkdir("sd:/_nds/TADDeliveryTool/tmp", 0777);
 
     /*
-    Please excuse my terrible copy paste coding. I do not know C and I'm translating from other languages
-    that I don't know (python, perl). 
-
-    Anyways, the code below is determining the file offsets and sizes within the TAD.
+    The code below is determining the file offsets and sizes within the TAD.
     This is done using the 32 byte header.
 
     Example header from "KART_K04.tad"
@@ -126,7 +121,7 @@ int openTad(char const* src) {
      Hex       | Dec    | Meaning
     -----------+--------+------------
     0x00000020 | 32     | Header size
-    0x4973     | Is     | TAD type
+    0x4973     | 18803  | TAD type (always "Is" in ASCII)
     0x0000     | 0      | TAD version
     0x00000E80 | 3712   | Cert size
     0x00000000 | 0      | Crl size
@@ -153,10 +148,7 @@ int openTad(char const* src) {
     tad.srlOffset = round_up(tad.tmdOffset + swap_endian_u32(header.tmdSize), 64);
     tad.metaOffset = round_up(tad.srlOffset + swap_endian_u32(header.srlSize), 64);
     // TODO: Make sure offset calculation and alignment is correct by comparing that to total size
-    //iprintf("  hdrSize:      %lu\n", swap_endian_u32(header.hdrSize));
-    //iprintf("  hdrOffset:    %lu\n", tad.hdrOffset);
-
-    // Commenting this block out makes the TAD decrypt improperly. Truly a programming moment.
+	
     // 18803 = "Is". This is the standard TAD type.
     if (swap_endian_u16(header.tadType) == 18803) {
         //iprintf("  tadType:      'Is'\n");
@@ -164,7 +156,6 @@ int openTad(char const* src) {
         iprintf("  tadType:      UNKNOWN\nERROR: unexpected TAD type\n");
         return 1;
     }
-
     //iprintf("  tadVersion:   %u\n", swap_endian_u16(header.tadVersion));
     //iprintf("  certSize:     %lu\n", swap_endian_u32(header.certSize));
     //iprintf("  certOffset:   %lu\n", tad.certOffset);
@@ -187,14 +178,14 @@ int openTad(char const* src) {
     /*
     Copy the contents of the TAD to the SD card.
 
-    For installing we only need the TMD, ticket, and SRL (obviously lol).
+    For installing we only need the TMD, ticket, and SRL.
 
     We can skip the cert since that already exists in NAND, and using the TAD's cert could introduce problems like
     trying to sign files for dev on a prod console.
     */
 
     iprintf("Copying output files...\n");
-    // Sorry for copy pasting, I'll make this a routine later
+
     iprintf("  Copying TMD...\n"); 
     copyFilePart(src, tad.tmdOffset, swap_endian_u32(header.tmdSize), "sd:/_nds/TADDeliveryTool/tmp/temp.tmd");
 
@@ -215,16 +206,14 @@ int openTad(char const* src) {
     fseek(ticket, 447, SEEK_SET);
     fread(title_key_enc, 1, 16, ticket);
     //iprintf("  Title key found!\n");
-    /* for (int i = 0; i < 16; i++) {iprintf("%02X", title_key_enc[i]);} */
-    iprintf("\n");
+
     //iprintf("  Finding title key IV...\n");
     unsigned char title_key_iv[16];
     fseek(ticket, 476, SEEK_SET);
     fread(title_key_iv, 1, 8, ticket);
     memset(title_key_iv + 8, 0, 8);
     //iprintf("  Title key IV found!\n");
-    /* for (int i = 0; i < 16; i++) {iprintf("%02X", title_key_iv[i]);} */
-    iprintf("\n");
+
     fclose(ticket);
 
     /*
@@ -237,10 +226,6 @@ int openTad(char const* src) {
 
         DEV --> DEBUGGER --> PROD
 
-    We check for only zerobytes at 0x15-1B to see if the SRL is decrypted properly. (should always be zerobytes)
-    
-    https://problemkaputt.de/gbatek.htm#dscartridgeheader
-    https://gist.github.com/rvtr/f1069530129b7a57967e3fc4b30866b4#file-decrypt_tad-py-L84
     */
     bool keyFail;
     iprintf("Trying dev common key...\n");
@@ -295,6 +280,8 @@ bool decryptTad(unsigned char* commonKey,
         decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
         fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
         printProgressBar( ((float)i / (float)srlSize) );
+	// Executable SRLs will always have a reverse order TID low at 0x230. 
+	// Use this to check if the current common key works.
         if (i == 560) {
             if (srl_buffer_dec[3] != srlTidLow[0] ||
                 srl_buffer_dec[2] != srlTidLow[1] ||
@@ -354,9 +341,9 @@ void printTadInfo(char const* fpath)
     for (int i = 0; i < 4; i++) {printf("%c", srlTidLow[i]);}
     iprintf("\x1B[47m");    //white
 
-    iprintf("\nGame Version:\n  \x1B[42m%d.%d\x1B[47m (NUS: \x1B[42mv%d\x1B[47m)\n", (int)srlVerHigh[0] * 256, (int)srlVerLow[0], ((int)srlVerHigh[0] * 256) + (int)srlVerLow[0]);
+    iprintf("\nGame Version:\n  \x1B[42m%d.%d\x1B[47m (NUS: \x1B[42mv%d\x1B[47m)\n", (int)srlVerHigh[0], (int)srlVerLow[0], ((int)srlVerHigh[0] * 256) + (int)srlVerLow[0]);
 
-    iprintf("Company Code:\n  \x1B[42m%c%c\x1B[47m(\x1B[42m%02x%02x\x1B[47m)\n", srlCompany[0], srlCompany[1], srlCompany[0], srlCompany[1]);
+    iprintf("Company Code:\n  \x1B[42m%c%c\x1B[47m (\x1B[42m%02x%02x\x1B[47m)\n", srlCompany[0], srlCompany[1], srlCompany[0], srlCompany[1]);
     
     // Print program type based on TID high?
     iprintf("Title ID: \n  ");
