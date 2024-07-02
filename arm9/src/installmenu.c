@@ -1,5 +1,6 @@
 #include "main.h"
 #include "rom.h"
+#include "tad.h"
 #include "install.h"
 #include "menu.h"
 #include "storage.h"

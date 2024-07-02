@@ -62,7 +62,7 @@ static bool _iqueHack(tDSiHeader* h)
 {
 	if (!h) return false;
 
-	if (h->ndshdr.reserved1[8] == 0x80)
+	if (h->ndshdr.reserved1[8] == 0x80 && dataTitle == FALSE)
 	{
 		iprintf("iQue Hack...");
 
@@ -81,7 +81,7 @@ static unsigned long long _getSaveDataSize(tDSiHeader* h)
 {
 	unsigned long long size = 0;
 
-	if (h)
+	if (h && dataTitle == FALSE)
 	{
 		size += h->public_sav_size;
 		size += h->private_sav_size;
@@ -154,7 +154,7 @@ static bool _openMenuSlot()
 
 static void _createPublicSav(tDSiHeader* h, char* dataPath)
 {
-	if (!h) return;
+	if (!h || dataTitle == TRUE) return;
 
 	if (h->public_sav_size > 0)
 	{
@@ -199,7 +199,7 @@ static void _createPublicSav(tDSiHeader* h, char* dataPath)
 
 static void _createPrivateSav(tDSiHeader* h, char* dataPath)
 {
-	if (!h) return;
+	if (!h || dataTitle == TRUE) return;
 
 	if (h->private_sav_size > 0)
 	{
@@ -244,7 +244,7 @@ static void _createPrivateSav(tDSiHeader* h, char* dataPath)
 
 static void _createBannerSav(tDSiHeader* h, char* dataPath)
 {
-	if (!h) return;
+	if (!h || dataTitle == TRUE) return;
 
 	if (h->appflags & 0x4)
 	{
@@ -391,7 +391,9 @@ bool install(char* tadPath, bool systemTitle)
 			h->tid_high == 0x0003000f || // Data titles
 			h->tid_high == 0x00030015 || // System titles
 			h->tid_high == 0x00030017)   // Launcher
-		{}
+		{} else if (dataTitle == TRUE) {
+			iprintf("TAD is a data title. ");
+		}
 		else
 		{
 			iprintf("\x1B[31m");	//red
@@ -439,8 +441,13 @@ bool install(char* tadPath, bool systemTitle)
 			goto error;
 		}
 
-		//blacklisted titles
+		/*
+		// Blacklisted titles
+		//
+		// I'm disabling this because if you can reinstall wlanfirm then it's silly to block the camera app...
+		// The app has shown itself to be safe enough, and soon hopefully will get legit installs for some TADs.
 		{
+
 			//tid without region
 			u32 tidLow = (h->tid_low & 0xFFFFFF00);
 			if (!sdnandMode && (
@@ -474,19 +481,24 @@ bool install(char* tadPath, bool systemTitle)
 				}
 			}
 		}
+		*/
 
 		//confirmation message
 		{
 			const char system[] = "\x1B[41mWARNING:\x1B[47m This is a system app,\ninstalling it is potentially\nmore risky than regular DSiWare.\n\x1B[33m";
-			const char areYouSure[] = "Are you sure you want to install\n";
+			const char systemData[] = "\x1B[41mWARNING:\x1B[47m This is a data title,\ninstalling it is extremely\nrisky. You will have a very\n\x1B[31mhigh chance of bricking!\n\x1B[33m";
+			const char areYouSure[] = "Are you sure you want to install?\n";
 			clearScreen(&topScreen); // Top screen breaks after this for some reason.
 			printTadInfo(tadPath);
 			clearScreen(&bottomScreen);
 			char* msg = (char*)malloc(strlen(system) + strlen(areYouSure) + strlen(fpath) + 2);
-			if (sdnandMode || h->tid_high == 0x00030004)
-				sprintf(msg, "%s%s?\n", areYouSure, fpath);
-			else
-				sprintf(msg, "%s%s%s?\n", system, areYouSure, fpath);
+			if (sdnandMode || h->tid_high == 0x00030004) {
+				sprintf(msg, "%s\n", areYouSure);
+			} else if (dataTitle == TRUE) {
+				sprintf(msg, "%s%s\n", systemData, areYouSure);
+			} else {
+				sprintf(msg, "%s%s\n", system, areYouSure);
+			}
 
 			bool choice = choiceBox(msg);
 			free(msg);
@@ -518,7 +530,7 @@ bool install(char* tadPath, bool systemTitle)
 		}
 		else if(!sdnandMode && !unlaunchPatches && access(tmdPath, F_OK) != 0)
 		{
-			if (choicePrint("TMD not found, game cannot be\nplayed without Unlaunch's\nlauncher patches.\nSee wiki for how to get a TMD.\n\nInstall anyway?") == YES)
+			if (choicePrint("TMD not found, game cannot be\nplayed without Unlaunch's\nlauncher patches.\n\nInstall anyway?") == YES)
 				tmdFound = false;
 			else
 				goto error;
@@ -558,20 +570,10 @@ bool install(char* tadPath, bool systemTitle)
 		*/
 
 		//check that there's space on nand
-		/*
 		if (!_checkDsiSpace(installSize, (h->tid_high != 0x00030004)))
 		{
-			if (sdnandMode && choicePrint("Install as system title?"))
-			{
-				h->tid_high = 0x00030015;
-				fixHeader = true;
-			}
-			else
-			{
-				goto error;
-			}
+			goto error;
 		}
-		*/
 
 		//check for saves
 		char pubPath[PATH_MAX];
@@ -625,10 +627,15 @@ bool install(char* tadPath, bool systemTitle)
 		char dirPath[32];
 		mkdir(sdnandMode ? "sd:/title" : "nand:/title", 0777);
 
-		sprintf(dirPath, "%s:/title/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high);
-		mkdir(dirPath, 0777);
-
-		sprintf(dirPath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
+		if (dataTitle == TRUE) {
+			sprintf(dirPath, "%s:/title/%02x%02x%02x%02x", sdnandMode ? "sd" : "nand", srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3]);
+			mkdir(dirPath, 0777);
+			sprintf(dirPath, "%s:/title/%02x%02x%02x%02x/%02x%02x%02x%02x", sdnandMode ? "sd" : "nand", srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3], srlTidLow[0], srlTidLow[1], srlTidLow[2], srlTidLow[3]);
+		} else {
+			sprintf(dirPath, "%s:/title/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high);
+			mkdir(dirPath, 0777);
+			sprintf(dirPath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
+		}
 
 		//check if title is free
 		if (_titleIsUsed(h))
@@ -716,7 +723,7 @@ bool install(char* tadPath, bool systemTitle)
 
 				//pad out banner if it is the last part of the file
 				{
-					if (h->ndshdr.bannerOffset > (fileSize - 0x23C0))
+					if (h->ndshdr.bannerOffset > (fileSize - 0x23C0) && dataTitle == FALSE)
 					{
 						iprintf("Padding banner...");
 						swiWaitForVBlank();
@@ -831,7 +838,7 @@ bool install(char* tadPath, bool systemTitle)
 		}
 
 		//ticket folder /ticket/XXXXXXXX
-		if (tmdFound)
+		if (tmdFound && dataTitle == FALSE)
 		{
 			//ensure folders exist
 			char ticketPath[32];
@@ -870,7 +877,7 @@ complete:
     remove("sd:/_nds/TADDeliveryTool/tmp/temp.tmd");
     remove("sd:/_nds/TADDeliveryTool/tmp/temp.tik");
     remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc");
-    remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
+    //remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
     rmdir("sd:/_nds/TADDeliveryTool/tmp");
 
 	return result;

@@ -22,9 +22,9 @@
 /*
     The common keys for decrypting TADs.
 
-    DEV: Used in most TADs. Anything created with the standard maketad will be dev.
-    PROD: Used in some TADs for factory tools like PRE_IMPORT and IMPORT. Far less common. There are only ~200 publicly released, and they are impossible to make from scratch.
-    DEBUGGER: Used in TwlSystemUpdater TADs. Created with maketad_updater.
+    DEV: Used for most TADs. Anything created with the standard maketad will be dev.
+    PROD: Used for some TADs in factory tools like PRE_IMPORT and IMPORT. They can be created from the NUS or manually from NAND.
+    DEBUGGER: Used for TwlSystemUpdater TADs. Created with maketad_updater, not really common to see.
     
     If for whatever reason you want to make TADs, see here:
     https://randommeaninglesscharacters.com/dsidev/man/maketad.html
@@ -69,10 +69,14 @@ typedef struct {
     uint32_t metaOffset;
 } Tad;
 unsigned char srlCompany[2];
-unsigned char srlTidLow[4];
-unsigned char srlTidHigh[4];
 unsigned char srlVerLow[1];
 unsigned char srlVerHigh[1];
+unsigned char contentHash[20];
+unsigned char srlTidLow[4];
+unsigned char srlTidHigh[4];
+uint32_t srlTrueSize;
+bool dataTitle;
+
 
 uint32_t swap_endian_u32(uint32_t x) {
     return (x >> 24) | ((x >> 8) & 0xff00) | ((x << 8) & 0xff0000) | (x << 24);
@@ -93,13 +97,13 @@ void decrypt_cbc(const unsigned char* key, const unsigned char* iv, const unsign
     aes_crypt_cbc(&ctx, AES_DECRYPT, dataSize, iv, encryptedData, decryptedData);
 }
 
-int openTad(char const* src) {
-	if (!src) return 1;
+char* openTad(char const* src) {
+	if (!src) return "ERROR";
 
     FILE *file = fopen(src, "rb");
     if (file == NULL) {
         printf("ERROR: fopen()");
-        return 1;
+        return "ERROR";
     }
 
     // idk how to create folders recursively
@@ -140,39 +144,40 @@ int openTad(char const* src) {
     iprintf("Parsing TAD header...\n");
     Tad tad;
     tad.hdrOffset = 0;
+
+    // 18803 = "Is". This is the standard TAD type.
+    // Others exist, but they are for Wii boot2 (ib) and netcard (NULL)
+    if (swap_endian_u16(header.tadType) == 18803) {
+        //iprintf("  tadType:      'Is'\n");
+    } else {
+        iprintf("  tadType:      UNKNOWN\nERROR: unexpected TAD type\n");
+        return "ERROR";
+    }
+
     // All offsets in the TAD are aligned to 64 bytes.
+    // TODO: Make sure offset calculation and alignment is correct by comparing that to total size
     tad.certOffset = round_up(swap_endian_u32(header.hdrSize), 64);
     tad.crlOffset = round_up(tad.certOffset + swap_endian_u32(header.certSize), 64);
     tad.ticketOffset = round_up(tad.crlOffset + swap_endian_u32(header.crlSize), 64);
     tad.tmdOffset = round_up(tad.ticketOffset + swap_endian_u32(header.ticketSize), 64);
     tad.srlOffset = round_up(tad.tmdOffset + swap_endian_u32(header.tmdSize), 64);
     tad.metaOffset = round_up(tad.srlOffset + swap_endian_u32(header.srlSize), 64);
-    // TODO: Make sure offset calculation and alignment is correct by comparing that to total size
+    /*
+    Okay sooo this is stupid. Content size defined in header != true content size
+    
+    sysmenuVersion has the header content size aligned to 64 bytes
+    The TMD content size + hash is for an unpadded content
+    
+    As such I think that the TMD size should always be the default.
+    */
+    fseek(file, tad.tmdOffset+496, SEEK_SET);
+    fread(&srlTrueSize, 1, 4, file);
+    fread(contentHash, 1, 20, file);
 	
-    // 18803 = "Is". This is the standard TAD type.
-    if (swap_endian_u16(header.tadType) == 18803) {
-        //iprintf("  tadType:      'Is'\n");
-    } else {
-        iprintf("  tadType:      UNKNOWN\nERROR: unexpected TAD type\n");
-        return 1;
-    }
-    //iprintf("  tadVersion:   %u\n", swap_endian_u16(header.tadVersion));
-    //iprintf("  certSize:     %lu\n", swap_endian_u32(header.certSize));
-    //iprintf("  certOffset:   %lu\n", tad.certOffset);
-    //iprintf("  crlSize:      %lu\n", swap_endian_u32(header.crlSize));
-    //iprintf("  crlOffset:    %lu\n", tad.crlOffset);
-    //iprintf("  ticketSize:   %lu\n", swap_endian_u32(header.ticketSize));
-    //iprintf("  ticketOffset: %lu\n", tad.ticketOffset);
-    //iprintf("  tmdSize:      %lu\n", swap_endian_u32(header.tmdSize));
-    //iprintf("  tmdOffset:    %lu\n", tad.tmdOffset);
-    //iprintf("  srlSize:      %lu\n", swap_endian_u32(header.srlSize));
-    //iprintf("  srlOffset:    %lu\n", tad.srlOffset);
-    //iprintf("  metaSize:     %lu\n", swap_endian_u32(header.metaSize));
-    //iprintf("  metaOffset:   %lu\n", tad.metaOffset);
-
     fseek(file, tad.tmdOffset+396, SEEK_SET);
     fread(srlTidHigh, 1, 4, file);
     fread(srlTidLow, 1, 4, file);
+
     fclose(file);
 
     /*
@@ -180,8 +185,7 @@ int openTad(char const* src) {
 
     For installing we only need the TMD, ticket, and SRL.
 
-    We can skip the cert since that already exists in NAND, and using the TAD's cert could introduce problems like
-    trying to sign files for dev on a prod console.
+    We can skip the cert since that already exists in NAND, and the TADs cert might not match the signing on the DSi.
     */
 
     iprintf("Copying output files...\n");
@@ -193,7 +197,7 @@ int openTad(char const* src) {
     copyFilePart(src, tad.ticketOffset, swap_endian_u32(header.ticketSize), "sd:/_nds/TADDeliveryTool/tmp/temp.tik");
     
     iprintf("  Copying SRL...\n"); 
-    copyFilePart(src, tad.srlOffset, swap_endian_u32(header.srlSize), "sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc");
+    copyFilePart(src, tad.srlOffset, swap_endian_u32(srlTrueSize), "sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc");
 
     /*
     Get the title key + IV from the ticket.
@@ -219,27 +223,34 @@ int openTad(char const* src) {
     /*
     This is SRL decryption (AES-CBC).
     
-        Common key + title key IV to decrypt title key, title key + content IV to decrypt content
+        Common key + title key IV to decrypt title key
+        Title key + content IV to decrypt content
 
     We have to try each possible common key until we find one that works. I don't know a better way to do this
     (nothing in the TAD would specify the key needed) so we'll try keys in the order of which ones are more common:
 
-        DEV --> DEBUGGER --> PROD
-
+        DEV --> PROD --> DEBUGGER
     */
+
+    if (srlTidHigh[3] == 0x0f) {
+        dataTitle = TRUE;
+    } else {
+        dataTitle = FALSE;
+    }
+
     bool keyFail;
     iprintf("Trying dev common key...\n");
-    keyFail = decryptTad(devKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
+    keyFail = decryptTad(devKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(srlTrueSize), srlTidLow, dataTitle, contentHash);
 
-    if (keyFail == TRUE) {
-        remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
-        iprintf("Key fail!\n\nTrying debugger common key...\n");
-        keyFail = decryptTad(debuggerKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
-    }
     if (keyFail == TRUE) {
         remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
         iprintf("Key fail!\n\nTrying prod common key...\n");
-        keyFail = decryptTad(prodKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(header.srlSize), srlTidLow);
+        keyFail = decryptTad(prodKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(srlTrueSize), srlTidLow, dataTitle, contentHash);
+    }
+    if (keyFail == TRUE) {
+        remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
+        iprintf("Key fail!\n\nTrying debugger common key...\n");
+        keyFail = decryptTad(debuggerKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(srlTrueSize), srlTidLow, dataTitle, contentHash);
     }
     if (keyFail == TRUE) {
         remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
@@ -255,7 +266,9 @@ bool decryptTad(unsigned char* commonKey,
                 unsigned char* title_key_enc,
                 unsigned char* content_iv,
                 int srlSize,
-                unsigned char* srlTidLow) {
+                unsigned char* srlTidLow,
+                bool dataTitle,
+                unsigned char* contentHash) {
     unsigned char title_key_dec[16];
     unsigned char title_key_iv_bak[16];
     unsigned char content_iv_bak[16];
@@ -274,23 +287,63 @@ bool decryptTad(unsigned char* commonKey,
     iprintf("  Decrypting SRL in chunks..\n");
     decrypt_cbc(commonKey, title_key_iv, title_key_enc, 16, 16, title_key_dec);
     int i=0;
-    bool keyFail = FALSE;    
-    while (i < srlSize && keyFail == FALSE) {
-        fread(srl_buffer_enc, 1, 16, srlFile_enc);
-        decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
-        fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
-        printProgressBar( ((float)i / (float)srlSize) );
-	// Executable SRLs will always have a reverse order TID low at 0x230. 
-	// Use this to check if the current common key works.
-        if (i == 560) {
-            if (srl_buffer_dec[3] != srlTidLow[0] ||
-                srl_buffer_dec[2] != srlTidLow[1] ||
-                srl_buffer_dec[1] != srlTidLow[2] ||
-                srl_buffer_dec[0] != srlTidLow[3] ) {
+    bool keyFail = FALSE;
+
+    /*
+    Why have two methods of decrypting for data and normal titles?
+    
+    Normal titles can be massive (16mb)! Decrpyting and calculating SHA1 multiple times to test keys
+    is painfully slow. We can quickly test the SRL header for the TID to make sure the key works.
+    
+    Data titles can't be tested the same way. Since they're just data, they don't have a header to read.
+    Luckily they tend to be small (10-300kb) so completely decrypting and checking a SHA1 hash is fast.
+    */
+
+    if (dataTitle == TRUE) {
+        // Copied SHA1 stuff from here.
+        // https://github.com/DS-Homebrew/SafeNANDManager/blob/master/arm9/source/arm9.c#L96-L152
+        swiSHA1context_t ctx;
+        ctx.sha_block=0;
+        u8 sha1[20]={0};
+        swiSHA1Init(&ctx);
+
+        while (i < srlSize) {
+            fread(srl_buffer_enc, 1, 16, srlFile_enc);
+            decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
+            fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
+            printProgressBar( ((float)i / (float)srlSize) );
+            swiSHA1Update(&ctx, srl_buffer_dec, 16);
+            i=i+16;
+
+        }
+        swiSHA1Final(sha1, &ctx);
+
+        // Compare SHA1 hash of file to TMD
+        for (int i = 0; i < 20; i++) {
+            if (contentHash[i] != sha1[i]) {
                 keyFail = TRUE;
             }
         }
-        i=i+16;
+        iprintf("\n");
+
+    } else {
+        while (i < srlSize && keyFail == FALSE) {
+            fread(srl_buffer_enc, 1, 16, srlFile_enc);
+            decrypt_cbc(title_key_dec, content_iv, srl_buffer_enc, 16, 16, srl_buffer_dec);
+            fwrite(srl_buffer_dec, 1, 16, srlFile_dec);
+            printProgressBar( ((float)i / (float)srlSize) );
+    	   // Executable SRLs will always have a reverse order TID low at 0x230. 
+    	   // Use this to check if the current common key works.
+            if (i == 560) {
+                if (srl_buffer_dec[3] != srlTidLow[0] ||
+                    srl_buffer_dec[2] != srlTidLow[1] ||
+                    srl_buffer_dec[1] != srlTidLow[2] ||
+                    srl_buffer_dec[0] != srlTidLow[3] ) {
+                    keyFail = TRUE;
+                }
+            }
+            i=i+16;
+        }
     }
     fclose(srlFile_dec);
     fclose(srlFile_enc);

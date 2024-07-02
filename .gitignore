@@ -2,12 +2,38 @@
 *.d
 *.nds
 *.tad
+*.wad
 *.dsi
+*.srl
 *.elf
 *.map
 *build/
 *.vscode
 *.DS_Store
 *._*
+
+# For the emulator SD
+*_nds/
+*private/
+*gm9i/
+
+# Test TADs:
+#   00030004
+*BrainAgeExpressArtsAndLetters/
+*BrainAgeExpressMath/
+#   00030005
+*DownloadPlay/
+*PictoChat/
+#   0003000f
+*DSHashTable/
+*sysmenuVersion/
+*wlanfirm/
+#   00030015
+*Settings/
+#   00030017
+*Launcher/
+
+# TWL EVA title check
+*tad_check/
 
 arm9/include/version.h
