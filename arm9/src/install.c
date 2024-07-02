@@ -290,7 +290,7 @@ static void _createTicket(tDSiHeader *h, char* ticketPath)
 {
 	if (!h) return;
 
-	iprintf("Forging ticket...");
+	iprintf("Signing ticket...");
 	swiWaitForVBlank();
 
 	if (!ticketPath)
@@ -304,15 +304,11 @@ static void _createTicket(tDSiHeader *h, char* ticketPath)
 		const u32 encryptedSize = sizeof(ticket_v0_t) + 0x20;
 		u8 *buffer = (u8*)memalign(4, encryptedSize); //memalign might be needed for encryption, but not sure
 		memset(buffer, 0, encryptedSize);
-		ticket_v0_t *ticket = (ticket_v0_t*)buffer;
-		ticket->sig_type[0] = 0x00;
-		ticket->sig_type[1] = 0x01;
-		ticket->sig_type[2] = 0x00;
-		ticket->sig_type[3] = 0x01;
-		strcpy(ticket->issuer, "Root-CA00000001-XS00000006");
-		PUT_UINT32_BE(h->tid_high, ticket->title_id, 0);
-		PUT_UINT32_BE(h->tid_low, ticket->title_id, 4);
-		memset(ticket->content_access_permissions, 0xFF, 0x20);
+
+		FILE *ticket = fopen("sd:/_nds/TADDeliveryTool/tmp/temp.tik", "rb");
+    	fseek(ticket, 0, SEEK_SET);
+		fread(buffer, sizeof(u8), sizeof(ticket_v0_t), ticket);
+		fclose(ticket);
 
 		// Encrypt
 		if (dsi_es_block_crypt(buffer, encryptedSize, ENCRYPT) != 0)
@@ -627,16 +623,10 @@ bool install(char* tadPath, bool systemTitle)
 		char dirPath[32];
 		mkdir(sdnandMode ? "sd:/title" : "nand:/title", 0777);
 
-		if (dataTitle == TRUE) {
-			sprintf(dirPath, "%s:/title/%02x%02x%02x%02x", sdnandMode ? "sd" : "nand", srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3]);
-			mkdir(dirPath, 0777);
-			sprintf(dirPath, "%s:/title/%02x%02x%02x%02x/%02x%02x%02x%02x", sdnandMode ? "sd" : "nand", srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3], srlTidLow[0], srlTidLow[1], srlTidLow[2], srlTidLow[3]);
-		} else {
-			sprintf(dirPath, "%s:/title/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high);
-			mkdir(dirPath, 0777);
-			sprintf(dirPath, "%s:/title/%08x/%08x", sdnandMode ? "sd" : "nand", (unsigned int)h->tid_high, (unsigned int)h->tid_low);
-		}
-
+		sprintf(dirPath, "%s:/title/%02x%02x%02x%02x", sdnandMode ? "sd" : "nand", srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3]);
+		mkdir(dirPath, 0777);
+		sprintf(dirPath, "%s:/title/%02x%02x%02x%02x/%02x%02x%02x%02x", sdnandMode ? "sd" : "nand", srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3], srlTidLow[0], srlTidLow[1], srlTidLow[2], srlTidLow[3]);
+		
 		//check if title is free
 		if (_titleIsUsed(h))
 		{
@@ -838,17 +828,18 @@ bool install(char* tadPath, bool systemTitle)
 		}
 
 		//ticket folder /ticket/XXXXXXXX
-		if (tmdFound && dataTitle == FALSE)
+		if (tmdFound)
 		{
+
 			//ensure folders exist
 			char ticketPath[32];
 			siprintf(ticketPath, "%s:/ticket", sdnandMode ? "sd" : "nand");
 			mkdir(ticketPath, 0777);
-			siprintf(ticketPath, "%s/%08lx", ticketPath, h->tid_high);
+			siprintf(ticketPath, "%s/%02x%02x%02x%02x", ticketPath, srlTidHigh[0], srlTidHigh[1], srlTidHigh[2], srlTidHigh[3]);
 			mkdir(ticketPath, 0777);
 
 			//actual tik path
-			siprintf(ticketPath, "%s/%08lx.tik", ticketPath, h->tid_low);
+			siprintf(ticketPath, "%s/%02x%02x%02x%02x.tik", ticketPath, srlTidLow[0], srlTidLow[1], srlTidLow[2], srlTidLow[3]);
 
 			if (access(ticketPath, F_OK) != 0 || (choicePrint("Ticket already exists.\nKeep it? (recommended)") == NO && choicePrint("Are you sure?") == YES))
 				_createTicket(h, ticketPath);
@@ -877,8 +868,9 @@ complete:
     remove("sd:/_nds/TADDeliveryTool/tmp/temp.tmd");
     remove("sd:/_nds/TADDeliveryTool/tmp/temp.tik");
     remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl.enc");
-    //remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
+    remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
     rmdir("sd:/_nds/TADDeliveryTool/tmp");
+    rmdir("sd:/_nds/TADDeliveryTool");
 
 	return result;
 }
