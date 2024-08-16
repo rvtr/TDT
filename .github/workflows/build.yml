@@ -29,6 +29,7 @@ jobs:
         with:
           path: "TDT.dsi"
           name: TDT-Nightly-Unsigned
+          compression-level: 0
 
   devsign:
     runs-on: windows-latest
