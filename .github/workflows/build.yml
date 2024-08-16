@@ -32,6 +32,7 @@ jobs:
 
   devsign:
     runs-on: windows-latest
+    needs: [build]
     name: Devsign TDT and build a TAD
     steps:
       - name: Download artifact
