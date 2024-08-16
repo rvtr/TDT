@@ -19,16 +19,59 @@ jobs:
     name: Build with Docker using devkitARM
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: Setup environment
         run: git config --global safe.directory '*'
       - name: Build TAD Delivery Tool
         run: make
       - name: Publish build to GH Actions
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.6
         with:
-          path: "*.dsi"
-          name: build
+          path: "TDT.dsi"
+          name: TDT-Nightly-Unsigned
+
+  devsign:
+    runs-on: windows-latest
+    needs: [build]
+    name: Devsign TDT and build a TAD
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: TDT-Nightly-Unsigned
+          path: D:\a\TDT\TDT\TDT-Build
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Clone ntool
+        uses: GuillaumeFalourd/clone-github-repo-action@v2.1
+        with:
+          depth: 1
+          owner: 'xprism1'
+          repository: 'ntool'
+      - name: Devsign TAD Delivery Tool
+        run: |
+          cp TDT-Build\TDT.dsi ntool
+          cd ntool
+          pip install pycryptodome
+          python ntool.py srl_retail2dev TDT.dsi
+      - name: Publish devsigned build to GH Actions
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          path: "ntool/TDT_dev.srl"
+          name: TDT-Nightly-Devsigned
+      - name: Make a devsigned TAD
+        run: |
+          curl https://cdn.randommeaninglesscharacters.com/tools/maketad/maketad.zip -o maketad.zip
+          7z e maketad.zip
+          cp ntool/TDT_dev.srl .
+          .\maketad-20090604.exe TDT_dev.srl -s -o TDT-Nightly.tad
+      - name: Publish devsigned TAD to GH Actions
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          path: "TDT-Nightly.tad"
+          name: TDT-Nightly-TAD
 
   # Only run this for non-PR jobs.
   publish_build:
@@ -42,8 +85,7 @@ jobs:
         with:
           name: build
           path: build
-      - name: 
-        if: 
+      - name: Publish Build
         run: |
           ID=$(jq --raw-output '.release.id' $GITHUB_EVENT_PATH)
 
