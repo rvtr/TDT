@@ -54,7 +54,7 @@ jobs:
       - name: Devsign TAD Delivery Tool
         run: |
           dir
-          tar -xvf TDT-Nightly-Unsigned.zip
+          7z e TDT-Nightly-Unsigned.zip
           cp TDT.dsi ntool/
           cd ntool/
           pip install pycryptodome
