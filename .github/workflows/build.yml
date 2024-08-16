@@ -19,16 +19,38 @@ jobs:
     name: Build with Docker using devkitARM
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: Setup environment
         run: git config --global safe.directory '*'
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Build TAD Delivery Tool
         run: make
       - name: Publish build to GH Actions
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.6
         with:
-          path: "*.dsi"
-          name: build
+          path: "TDT.dsi"
+          name: TDT-Nightly-Unsigned
+      - name: Clone ntool
+        uses: GuillaumeFalourd/clone-github-repo-action@v2.1
+        with:
+          depth: 1
+          branch: 'master'
+          owner: 'xprism1'
+          repository: 'ntool'
+      - name: Devsign TAD Delivery Tool
+        run: |
+          cp TDT.dsi ntool/
+          cd ntool/
+          python ntool.py srl_retail2dev TDT.dsi
+      - name: Publish devsigned build to GH Actions
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          path: "ntool/TDT_dev.dsi"
+          name: TDT-Nightly-Devsigned
+      
 
   # Only run this for non-PR jobs.
   publish_build:
@@ -42,8 +64,7 @@ jobs:
         with:
           name: build
           path: build
-      - name: 
-        if: 
+      - name: Publish Build
         run: |
           ID=$(jq --raw-output '.release.id' $GITHUB_EVENT_PATH)
 
