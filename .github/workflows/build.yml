@@ -39,6 +39,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: TDT-Nightly-Unsigned
+          path: D:\a\TDT\TDT\TDT-Nightly-Unsigned.zip
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -51,6 +52,7 @@ jobs:
           repository: 'ntool'
       - name: Devsign TAD Delivery Tool
         run: |
+          cd D:\a\TDT\TDT\
           7z e TDT-Nightly-Unsigned.zip
           cp TDT.dsi ntool/
           cd ntool/
