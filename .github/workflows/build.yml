@@ -47,7 +47,6 @@ jobs:
         uses: GuillaumeFalourd/clone-github-repo-action@v2.1
         with:
           depth: 1
-          branch: 'master'
           owner: 'xprism1'
           repository: 'ntool'
       - name: Devsign TAD Delivery Tool
@@ -55,6 +54,7 @@ jobs:
           7z e TDT-Nightly-Unsigned.zip
           cp TDT.dsi ntool/
           cd ntool/
+          pip install pycryptodome
           python ntool.py srl_retail2dev TDT.dsi
       - name: Publish devsigned build to GH Actions
         uses: actions/upload-artifact@v4.3.6
