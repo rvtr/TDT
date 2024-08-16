@@ -60,7 +60,7 @@ jobs:
       - name: Publish devsigned build to GH Actions
         uses: actions/upload-artifact@v4.3.6
         with:
-          path: "ntool/TDT_dev.dsi"
+          path: "ntool/TDT_dev.srl"
           name: TDT-Nightly-Devsigned
       
 
