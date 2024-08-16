@@ -40,7 +40,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: TDT-Nightly-Unsigned
-          path: D:\a\TDT\TDT\TDT-Nightly-Unsigned.zip
+          path: D:\a\TDT\TDT\TDT-Build
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -53,10 +53,8 @@ jobs:
           repository: 'ntool'
       - name: Devsign TAD Delivery Tool
         run: |
-          dir
-          7z e TDT-Nightly-Unsigned.zip
-          cp TDT.dsi ntool/
-          cd ntool/
+          cp TDT-Build\TDT.dsi ntool
+          cd ntool
           pip install pycryptodome
           python ntool.py srl_retail2dev TDT.dsi
       - name: Publish devsigned build to GH Actions
