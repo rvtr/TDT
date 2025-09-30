@@ -41,6 +41,10 @@ const unsigned char debuggerKey[] = {
     0xA2, 0xFD, 0xDD, 0xF2 ,0xE4, 0x23, 0x57, 0x4A,
     0xE7, 0xED, 0x86, 0x57, 0xB5, 0xAB, 0x19, 0xD3
 };
+const unsigned char customKey[] = {
+    0x00, 0x00, 0x00, 0x00 ,0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00 ,0x00, 0x00, 0x00, 0x00
+};
 // Content IV be fine as a hardcoded string. Content IV is based off of the content index. (index # with zerobyte padding) 
 // All TADs I've seen only ever had a single content. It might be a good idea to add something down the line in case a
 // weird TAD pops up, but until then this should do.
@@ -251,6 +255,11 @@ char* openTad(char const* src) {
         remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
         iprintf("Key fail!\n\nTrying debugger common key...\n");
         keyFail = decryptTad(debuggerKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(srlTrueSize), srlTidLow, dataTitle, contentHash);
+    }
+    if (keyFail == TRUE) {
+        remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
+        iprintf("Key fail!\n\nTrying custom key...\n");
+        keyFail = decryptTad(customKey, title_key_iv, title_key_enc, content_iv, swap_endian_u32(srlTrueSize), srlTidLow, dataTitle, contentHash);
     }
     if (keyFail == TRUE) {
         remove("sd:/_nds/TADDeliveryTool/tmp/temp.srl");
