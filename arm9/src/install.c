@@ -62,7 +62,7 @@ static bool _iqueHack(tDSiHeader* h)
 {
 	if (!h) return false;
 
-	if (h->ndshdr.reserved1[8] == 0x80 && dataTitle == FALSE)
+	if (h->ndshdr.reserved1[8] == 0x80 && dataTitle == FALSE && (h->tid_low & 0xFF) != region)
 	{
 		iprintf("iQue Hack...");
 
